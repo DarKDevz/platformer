@@ -38,10 +38,9 @@ function addBox(pos, size) {
 function Level() {
 	addBox(createVector(150,250),createVector(170,50));
 	addBox(createVector(350,100),createVector(100,50));
-	addBox(createVector(-1,400),createVector(810,64));
-	addBox(createVector(-1,501),createVector(810,32));
+	addBox(createVector(-1,400),createVector(810,32));
 	addBox(createVector(610,200),createVector(60,100));
-	addBox(createVector(600,300),createVector(200,32));
+	addBox(createVector(600,300),createVector(150,32));
 	addBox(createVector(600,300),createVector(32,100));
 }
 function setup() {
@@ -90,17 +89,23 @@ function setup() {
 		//Y vel
 		if(this.grounded) this.vel.y = 0;
 		else {this.vel.y += .1}
-		this.pos.y += 1*this.vel.y
+		this.pos.y += 1*this.vel.y*(deltaTime / 16)
 		this.yvel = abs(this.vel.y)/this.vel.y
 		if(!this.yvel) this.yvel = 0;
 		if(this.grounded && !this.colliding) this.grounded = false;
 		//X vel
-		this.vel.x = this.vel.x * .7
+		this.vel.x = this.vel.x * .7 * (deltaTime / 16)
 		if(this.vel.x < 0.0001  && this.vel.x > 0) this.vel.x = 0;
 		else if(this.vel.x > -0.0001  && this.vel.x < 0) this.vel.x = 0;
 		this.pos.x += 1*this.vel.x;
 		this.xvel = abs(this.vel.x)/this.vel.x
 		if(!this.xvel) this.xvel = 0;
+		if(this.pos.y > 500) {
+		this.pos = createVector(400,-10);
+		this.size = createVector(30,70);
+		this.vel = createVector(0,0);
+		this.old = createVector(0,0);
+			}
 		},
 		collision(id) {
 		let t_box = boxes[t_box_id];
