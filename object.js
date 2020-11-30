@@ -9,4 +9,7 @@ class GameObject {
 	collision() {
 	
 	}
+	update() {
+	
+	}
 }

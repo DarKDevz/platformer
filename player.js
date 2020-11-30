@@ -10,7 +10,8 @@ class Player {
 	this.xdir= 0;
 	this.grounded= false;
 	this.colliding= false;
-	this.collidedId= null;
+	this.collidedId= null;	
+	this.groundedId = null;
 	this.yvel= 1;
 	this.xvel= 0;
 	}
@@ -25,7 +26,7 @@ display (){
 	text("ox= " + round(this.old.x),50,100);
 	text("ground= " + (this.grounded),50,110);
 	text("colliding= " + (this.colliding),50,120);
-	text("id= " + (this.collidedId),50,130);
+	text("id= " + (this.groundedId),50,130);
 	text("surface x=" + (this.surface),50,140);
 	}
 update (){
@@ -64,7 +65,7 @@ update (){
 	this.pos.y += 1*this.vel.y*(deltaTime / 16)
 	this.yvel = abs(this.vel.y)/this.vel.y
 	if(!this.yvel) this.yvel = 0;
-	if(this.grounded && !this.colliding) this.grounded = false;
+	//if(this.grounded && !this.colliding) this.grounded = false;
 	//X vel
 	this.vel.x = this.vel.x * .7 * (deltaTime / 16)
 	if(this.vel.x < 0.0001  && this.vel.x > 0) this.vel.x = 0;
@@ -149,12 +150,13 @@ update (){
 		}
 			if(!found) {
 			found = c;
+			}
 			if(this.grounded) {
 			this.pos.y++;
-			found = this.collision(this.collidedId);
+			this.grounded = this.collision(this.collidedId);
+			if(this.grounded) this.groundedId = this.collidedId;
 			this.pos.y--;
 				}
-			}
 		}
 	this.colliding = found;
 	return this.colliding;

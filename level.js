@@ -1,24 +1,29 @@
 var levels = [];
 var activeLevel;
 class Level{
-	constructor(arr) {
+	constructor(arr,pos) {
 	this.boxes = arr;
+	this.ind = levels.length;
+	this.pos = pos;
 	}
 	display() {
 	for(let t_box of this.boxes) {
 	t_box.display();
 	   }
 	}
-	loadLevel(ind) {
+	loadLevel() {
 	try {
-	player = new Player();
+	if(player) {
+	player.pos = this.pos.copy();
+	player.cameraPos = player.pos.copy()
+	}
 	boxes = this.boxes;
-	activeLevel = ind;
+	activeLevel = this.ind;
 	}catch(e) {
 		console.log(e)
 	}
 		}
 }
-addLevel = arr => {
-levels.push(new Level(arr))
+addLevel = function(arr, pos) {
+levels.push(new Level(arr, pos))
 }

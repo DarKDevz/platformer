@@ -9,6 +9,6 @@ class End extends Box{
 		rect(this.x,this.y,this.width ,this.height)
 	}
 	onCollide() {
-		levels[activeLevel + 1].loadLevel(activeLevel + 1);
+		levels[activeLevel + 1].loadLevel();
 	}
 }
