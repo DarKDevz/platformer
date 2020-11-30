@@ -7,13 +7,13 @@ class Box extends GameObject{
 	this.clr = 0;
 	this.oldX;
 	this.oldY;
-	console.log(this);
 	}
 	display() {
 		this.oldX = this.x;
 		this.oldY = this.y;
 		fill(this.clr);
-		rect(this.x,this.y,this.width ,this.height)
+		rect(this.x,this.y,this.width ,this.height);
+		this.update();
 	}
 	collision() {
 		let rect2 = {
@@ -27,5 +27,6 @@ class Box extends GameObject{
 		if(collides) this.onCollide();
 		return collides;
 	    }
+//	update() {}
 	onCollide() {}
 }
