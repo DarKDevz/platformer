@@ -1,8 +1,7 @@
 var boxes = [];
-class Box {
+class Box extends GameObject{
 	constructor(x,y,w,h) {
-	this.x = x;
-	this.y = y;
+	super(x,y);
 	this.width = w;
 	this.height = h;
 	this.clr = 0;

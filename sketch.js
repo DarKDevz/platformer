@@ -23,6 +23,7 @@ function Levels() {
   addBox(-1,400,890,32);
   addBox(600,300,260,32);
   addBox(860,300,10,100);
+  t_boxes.push(new Text(500, 330,"S to crouch"));
   t_boxes.push(new End(790,350,60,50));
   addLevel(t_boxes);
   t_boxes = [];

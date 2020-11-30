@@ -129,6 +129,7 @@ update (){
 	}
 	onCollide(id) {
 		let t_box = boxes[id];
+		if(!t_box) return;
 		let bpos = createVector(t_box.oldX,t_box.oldY)
 		let bsize = createVector(t_box.width,t_box.height);
 		let tcenter = this.center(bsize, bpos);
