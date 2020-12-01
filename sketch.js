@@ -10,7 +10,7 @@ function Levels() {
   t_boxes.push(new End(610,200,60,100));
   addBox(600,300,150,32);
   addBox(600,300,32,100);
-  t_boxes.push(new movingPlatform(-500,350,60,50,t_boxes.length));
+  t_boxes.push(new movingPlatform(-500,350,60,50,t_boxes.length, 0, 500));
   addLevel(t_boxes, createVector(400,-10));
   levels[0].loadLevel();
   t_boxes = [];
@@ -19,6 +19,7 @@ function Levels() {
   addBox(600,300,260,32);
   addBox(860,300,10,100);
   t_boxes.push(new Text(500, 330,"S to crouch"));
+  t_boxes.push(new movingPlatform(450,350,60,50,t_boxes.length, 350, 600));
   t_boxes.push(new End(790,350,60,50));
   addLevel(t_boxes, createVector(400,-10));
   t_boxes = [];

@@ -23,7 +23,6 @@ class Box extends GameObject{
 		height: player.size.y,
 		}
 		let collides = collide(this, rect2);
-		this.clr = collides * 125;
 		if(collides) this.onCollide();
 		return collides;
 	    }

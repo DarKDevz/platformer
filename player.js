@@ -18,16 +18,6 @@ class Player {
 display (){
 	fill(0)
 	if(draw) rect(this.pos.x,this.pos.y,this.size.x,this.size.y);
-	text("vx= " + round(this.vel.x),50,50);
-	text("vy= " + round(this.vel.y),50,60);
-	text("x= " + round(this.pos.x),50,70);
-	text("y= " + round(this.pos.y),50,80);
-	text("oy= " + round(this.old.y),50,90);
-	text("ox= " + round(this.old.x),50,100);
-	text("ground= " + (this.grounded),50,110);
-	text("colliding= " + (this.colliding),50,120);
-	text("id= " + (this.groundedId),50,130);
-	text("surface x=" + (this.surface),50,140);
 	}
 update (){
 	this.old = this.pos.copy();
@@ -103,6 +93,7 @@ update (){
 		let distance = (this.size.copy().div(2).y + bsize.copy().div(2).y) - (t_center.y - pos_center.y);
 		this.pos.y -= distance;
 		this.grounded = true;
+		this.groundedId = id;
 		}
 		if(pos_center.y > t_center.y) {
 		this.vel.y = 0;
@@ -151,7 +142,7 @@ update (){
 			if(!found) {
 			found = c;
 			}
-			if(this.grounded) {
+			if(this.grounded && t_box_id == this.groundedId){
 			this.pos.y++;
 			this.grounded = this.collision(this.collidedId);
 			if(this.grounded) this.groundedId = this.collidedId;

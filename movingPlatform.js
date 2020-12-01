@@ -1,7 +1,10 @@
 class movingPlatform extends Box{
-	constructor(x,y,w,h,id) {
+	constructor(x,y,w,h,id,x1,x2) {
 		super(x,y,w,h);
 		this.id = id
+		this.direction = "r";
+		this.x1 = x1;
+		this.x2 = x2;
 	}
 	update() {
 		let t_player = {
@@ -10,11 +13,15 @@ class movingPlatform extends Box{
 		width: player.size.x,
 		height: player.size.y,
 		}
-		let ground
-		let dirpos = this.direction();
-		if(this.x < 500){this.x += 3;
+		let ground;
+		if(this.x < this.x2 && this.direction == "r"){this.x += 3;
 		ground = collide(this, t_player);}
-		else {this.x = 0}
+		else {
+		 this.direction = "l";}
+		if(this.direction == "l"){
+		this.x -= 3;
+		}
+		if(this.x < this.x1) this.direction = "r";
 		if(player.grounded && player.groundedId == this.id && !player.colliding) {player.pos.x -= (this.oldX - this.x)}
 	}
 	direction() {
