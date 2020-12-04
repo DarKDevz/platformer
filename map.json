@@ -11,11 +11,11 @@ function setupLevels() {
   addLevel(t_boxes, createVector(400,-10));
   t_boxes = [];
   //2nd Level
-  t_boxes.push(new movingPlatform(450,350,60,50,t_boxes.length, 350, 600));
   addBox(350,100,100,50);
   addBox(-1,400,890,32);
   addBox(600,300,260,32);
   addBox(860,300,10,100);
+  t_boxes.push(new movingPlatform(450,350,60,50,t_boxes.length, 350, 600));
   t_boxes.push(new Text(500, 330,"S to crouch"));
   t_boxes.push(new End(790,350,60,50));
   addLevel(t_boxes, createVector(400,-10));
