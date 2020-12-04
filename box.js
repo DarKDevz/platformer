@@ -1,4 +1,8 @@
 var boxes = [];
+function addBox(x,y,w,h) {
+	let t_box = new Box(x, y, w, h);
+	t_boxes.push(t_box);
+}
 class Box extends GameObject{
 	constructor(x,y,w,h) {
 	super(x,y);
@@ -15,12 +19,29 @@ class Box extends GameObject{
 		rect(this.x,this.y,this.width ,this.height);
 		this.update();
 	}
-	collision() {
+	collision(obj) {
+		var oX,oY,oW,oH;
+		if(obj.pos !== undefined) {
+		oX = obj.pos.x;
+		oY = obj.pos.y;
+		}
+		else {
+		oX = obj.x;
+		oY = obj.y;
+		}
+		if(obj.size !== undefined) {
+		oW = obj.size.x;
+		oH = obj.size.y;
+		}
+		else {
+		oW = obj.width;
+		oH = obj.height;
+		}
 		let rect2 = {
-		x: player.pos.x,
-		y: player.pos.y,
-		width: player.size.x,
-		height: player.size.y,
+		x: oX,
+		y: oY,
+		width: oW,
+		height: oH,
 		}
 		let collides = collide(this, rect2);
 		if(collides) this.onCollide();

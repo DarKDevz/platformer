@@ -12,4 +12,10 @@ class GameObject {
 	update() {
 	
 	}
+	earlyUpdate() {
+
+	}
+	lateUpdate() {
+
+	}
 }

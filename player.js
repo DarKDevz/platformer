@@ -6,18 +6,14 @@ class Player {
 	this.vel= createVector(0,0);
 	this.old= createVector(0,0);
 	this.cameraPos = this.pos.copy();
-	this.draw=true;
-	this.xdir= 0;
 	this.grounded= false;
 	this.colliding= false;
 	this.collidedId= null;	
 	this.groundedId = null;
-	this.yvel= 1;
-	this.xvel= 0;
 	}
 display (){
 	fill(0)
-	if(draw) rect(this.pos.x,this.pos.y,this.size.x,this.size.y);
+	rect(this.pos.x,this.pos.y,this.size.x,this.size.y);
 	}
 update (){
 	this.old = this.pos.copy();
@@ -25,7 +21,6 @@ update (){
 	//Space
 	if (keyIsDown(87) && this.grounded) {
 		this.grounded = false;
-		this.colliding = false;
 		this.vel.y = -6.7;
 		}
 	if (keyIsDown(65)) {
@@ -53,16 +48,12 @@ update (){
 	if(this.grounded) this.vel.y = 0;
 	else {this.vel.y += .1}
 	this.pos.y += 1*this.vel.y*(deltaTime / 16)
-	this.yvel = abs(this.vel.y)/this.vel.y
-	if(!this.yvel) this.yvel = 0;
 	//if(this.grounded && !this.colliding) this.grounded = false;
 	//X vel
 	this.vel.x = this.vel.x * .7 * (deltaTime / 16)
 	if(this.vel.x < 0.0001  && this.vel.x > 0) this.vel.x = 0;
 	else if(this.vel.x > -0.0001  && this.vel.x < 0) this.vel.x = 0;
 	this.pos.x += 1*this.vel.x;
-	this.xvel = abs(this.vel.x)/this.vel.x
-	if(!this.xvel) this.xvel = 0;
 	if(this.pos.y > 500) {
 	this.pos = createVector(400,-10);
 	this.size = createVector(30,70);
@@ -73,7 +64,7 @@ update (){
 	collision(id) {
 	let t_box = boxes[id];
 	if(t_box)
-	return t_box.collision();
+	return t_box.collision(this);
 	}
 	posCenter() {
 	return this.center(this.size,this.pos);

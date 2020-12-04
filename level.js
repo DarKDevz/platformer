@@ -11,6 +11,16 @@ class Level{
 	t_box.display();
 	   }
 	}
+	lateUpdate() {
+	for(let t_box of this.boxes) {
+	t_box.lateUpdate();
+	   }
+	}
+	earlyUpdate() {
+	for(let t_box of this.boxes) {
+	t_box.earlyUpdate();
+	   }
+	}
 	loadLevel() {
 	try {
 	if(player) {
