@@ -3,8 +3,8 @@ function windowResized() {
 }
 function setup() {
 	createCanvas(windowWidth,windowHeight);
-	setupLevels();
 	player = new Player();
+	setupLevels();
 }
 function draw() {
 	clear();

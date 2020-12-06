@@ -5,7 +5,7 @@ function addBox(x,y,w,h) {
 }
 class Box extends GameObject{
 	constructor(x,y,w,h) {
-	super(x,y);
+	super(x,y,"Box");
 	this.width = w;
 	this.height = h;
 	this.clr = 0;

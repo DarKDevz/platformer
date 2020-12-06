@@ -55,7 +55,7 @@ update (){
 	else if(this.vel.x > -0.0001  && this.vel.x < 0) this.vel.x = 0;
 	this.pos.x += 1*this.vel.x;
 	if(this.pos.y > 500) {
-	this.pos = createVector(400,-10);
+	this.pos = levels[activeLevel].pos.copy();
 	this.size = createVector(30,70);
 	this.vel = createVector(0,0);
 	this.old = createVector(0,0);
@@ -145,8 +145,9 @@ update (){
 	}
 	camera() {
 	let pos = this.posCenter();
-	this.cameraPos = createVector(lerp(this.cameraPos.x, pos.x, .05),lerp(this.cameraPos.y, pos.y, .05));
+	this.cameraPos = createVector(lerp(this.cameraPos.x, pos.x - canvas.width / 2, .05),lerp(this.cameraPos.y, pos.y - canvas.height / 2, .05));
 	resetMatrix();
-	translate(-this.cameraPos.x + canvas.width / 2, -this.cameraPos.y + canvas.height / 2);
+	translate(-this.cameraPos.x , -this.cameraPos.y);
+	
 	}
 }

@@ -1,7 +1,8 @@
 class GameObject {
-	constructor(x,y) {
+	constructor(x,y,tag) {
 	this.x = x;
 	this.y = y;
+	this.tag = tag;
 	}
 	display() {
 	

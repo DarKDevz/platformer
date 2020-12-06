@@ -22,17 +22,16 @@ class Level{
 	   }
 	}
 	loadLevel() {
-	try {
-	if(player) {
 	player.pos = this.pos.copy();
-	player.cameraPos = player.pos.copy()
-	}
+	player.cameraPos = player.pos.copy();
+	player.grounded = false;
+	player.groundedId = null;
+	player.colliding = false;
+	player.collidedId = null;
+	player.vel = createVector(0,0);
 	boxes = this.boxes;
 	activeLevel = this.ind;
-	}catch(e) {
-		console.log(e)
 	}
-		}
 }
 addLevel = function(arr, pos) {
 levels.push(new Level(arr, pos))
