@@ -4,6 +4,9 @@ class GameObject {
 	this.y = y;
 	this.tag = tag;
 	}
+	getValues() {
+	return [this.x,this.y];
+	}
 	display() {
 	
 	}

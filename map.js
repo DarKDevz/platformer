@@ -7,15 +7,72 @@ var Paused;
 var pauseButton;
 var selectedObjects = [];
 var lastScene;
+var inputFile;
+var saveButton;
 function windowResized() {
 	resizeCanvas(windowWidth,windowHeight);
 	pauseButton.position(windowWidth / 2, 0);
 	button.position(windowWidth / 2 - 45, 0);
 }
+function JsonMap(file) {
+	boxes = [];
+	levels = [];
+	eval(file.data);
+	setupLevels();
+}
+function saveMap() {
+	let jsMap = createWriter('t_map_t.js');
+	/*--------------addObj Code-------------*/
+	jsMap.write(['var t_boxes = [];'+
+	'let addLevel = function(arr, pos) {levels.push(new Level(arr, pos))};'+
+	'function addObj(ind,arr) {'+
+	'switch(ind) {'+
+		'case 0:'+
+		't_boxes.push(new Box(...arr));'+
+		'break;'+
+		'case 1:'+
+		't_boxes.push(new End(...arr));'+
+		'break;'+
+		'case 2:'+
+		't_boxes.push(new movingPlatform(...arr));'+
+		'break;'+
+		'case 3:'+
+		't_boxes.push(new Text(...arr));'+
+		'break;'+
+		'}'+
+		'}']);
+	jsMap.write("function setupLevels() {");
+	for(tLid in levels) {
+		console.log(tLid);
+		for(t_box of levels[tLid].boxes) {
+		let arguments = "[";
+		for(t_arg_id in t_box.getValues()) {
+		let t_arg = t_box.getValues()[t_arg_id];
+		if(t_arg_id != t_box.getValues().length - 1) {
+		arguments += t_arg + ",";
+		}else {
+		arguments += t_arg + "]);";
+			}
+		}
+		jsMap.write("addObj(" + t_box.typeId +","+ arguments);
+		}
+		jsMap.write("addLevel(t_boxes, createVector(" + levels[tLid].pos.x +", " + levels[tLid].pos.y + "));")
+		jsMap.write("t_boxes = [];")
+	}
+	jsMap.write("levels[0].loadLevel();");
+	jsMap.write("}")
+	jsMap.close();
+}
 function setup() {
 	createCanvas(windowWidth,windowHeight);
 	player = new Player();
 	button = createButton('Play');
+	inputFile = createFileInput(JsonMap);
+	inputFile.position(0,0);
+	inputFile.style("color: transparent");
+	saveButton = createButton("Save");
+	saveButton.position(75,0);
+	saveButton.mousePressed(saveMap);
 	pauseButton = createButton('Paused');
 	pauseButton.position(windowWidth / 2, 0)
 	setupLevels();
@@ -61,12 +118,12 @@ function draw() {
 		]);
 		}
         if(mouseIsPressed && mouseButton === CENTER) {	
-		console.log("Middle");	
-		if(selectedObjects.length === 0) return;
+		if(selectedObjects.length !== 0) {
 		for(t_box_id of selectedObjects) {
 		let t_box = boxes[t_box_id];
 		t_box.x += mouseX - pmouseX;
 		t_box.y += mouseY - pmouseY;
+			}
 		}
 	}
 	if(lastWasPressed != Pressed && !mouseIsPressed) {

@@ -1,5 +1,20 @@
 var levels = [];
 var activeLevel;
+function addObj(ind,arr) {
+	switch(ind) {
+	case 0:
+	t_boxes.push(new Box(...arr));
+	break;
+	case 1:
+	t_boxes.push(new End(...arr));
+	break;
+	case 2:
+	t_boxes.push(new movingPlatform(...arr));
+	break;
+	case 3:
+	t_boxes.push(new Text(...arr))
+	}
+}
 class Level{
 	constructor(arr,pos) {
 	this.boxes = arr;

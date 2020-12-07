@@ -1,10 +1,13 @@
 class movingPlatform extends Box{
-	constructor(x,y,w,h,id,x1,x2) {
+	constructor(x,y,w,h,x1,x2) {
 		super(x,y,w,h);
-		this.id = id
 		this.direction = "r";
 		this.x1 = x1;
 		this.x2 = x2;
+		this.typeId = 2;
+	}
+	getValues() {
+	return [...super.getValues(),this.x1,this.x2];
 	}
 	earlyUpdate() {
 		let t_player = {

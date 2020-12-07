@@ -1,8 +1,4 @@
 var boxes = [];
-function addBox(x,y,w,h) {
-	let t_box = new Box(x, y, w, h);
-	t_boxes.push(t_box);
-}
 class Box extends GameObject{
 	constructor(x,y,w,h) {
 	super(x,y,"Box");
@@ -11,6 +7,10 @@ class Box extends GameObject{
 	this.clr = 0;
 	this.oldX;
 	this.oldY;
+	this.typeId = 0;
+	}
+	getValues() {
+	return [...super.getValues(),this.width,this.height]
 	}
 	display() {
 		this.oldX = this.x;

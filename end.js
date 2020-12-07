@@ -2,6 +2,7 @@ class End extends Box{
 	constructor(x,y,w,h) {
 	super(x,y,w,h);
 	this.tag = this.name;
+	this.typeId = 1;
 	}
 	display() {
 		this.oldX = this.x;
