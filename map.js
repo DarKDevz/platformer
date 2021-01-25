@@ -4,6 +4,9 @@ var classes = {
 	platform : movingPlatform,
 	end: End,
 }
+var pasted = false;
+var copiedObj;
+var copyType;
 var cameraPos;
 var lastWasPressed = false;
 var overUI = false;
@@ -19,6 +22,7 @@ var selectedObjects = [];
 var lastScene;
 var inputFile;
 var saveButton;
+var copyButton;
 var sideMenu;
 var boxInfo;
 var info = [];
@@ -108,8 +112,9 @@ function setup() {
 	sideMenu.id('sideMenu');
 	sideMenu.mouseOver(() => overUI = true)
 	sideMenu.mouseOut(() => overUI = false)
-	boxInfo = createDiv('Box Info:');
-	boxInfo.parent('sideMenu');
+	copyButton = createButton('Copy');
+	copyButton.mousePressed(copyObject)
+	copyButton.parent('sideMenu')
 	setupLevels();
 	button.position(windowWidth / 2 - 45, 0);
 	button.mousePressed(() => {
@@ -138,8 +143,38 @@ function setup() {
 	lastScene = activeLevel;
 	cameraPos = createVector(0,0);
 }
-//TO-DO: add select option
+function copyObject() {
+	if(!boxes[t_box_id]) return;
+	copiedObj = boxes[t_box_id].getValues()
+	switch(boxes[t_box_id].typeId) {
+	case 0:
+			copyType = "box"
+		break;
+	case 1:
+		copyType = "end"
+	break;
+	case 2:
+		copyType = "platform"
+	break;
+	case 3:
+		copyType = "text"
+	break;
+	}
+}
 function draw() {
+	if(keyIsDown(17) && keyIsDown(86)) {
+	if(!pasted) {
+		if(!overUI && copiedObj) {
+		let newCopy = copiedObj
+		newCopy[0] = mouseCoords().x
+		newCopy[1] = mouseCoords().y
+		levels[activeLevel].boxes.push(new classes[copyType](...newCopy));
+		}
+	}
+	pasted = true;
+	}else {
+	pasted = false;
+	}
 	clear();
 	background(150, 230, 240);
 	if(lastScene != activeLevel) {
@@ -211,7 +246,6 @@ function draw() {
 	info.push(t_box.getValues()[t_val_id])
 	info.push(t_box.getActualValuesName()[t_val_id])
 	}
-	boxInfo.html("Box Info:")
 	let lastInfoDivs = infoDivs;
 	//dont update list if it's the same as before
 	//equals array prototype at bottom!
