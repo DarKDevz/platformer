@@ -7,10 +7,16 @@ class GameObject {
 	getValues() {
 	return [this.x,this.y];
 	}
+	getValuesName() {
+	return ["x","y"];
+	}
+	getActualValuesName() {
+	return ["x","y"];
+	}
 	display() {
 	
 	}
-	collision() {
+	collision(obj) {
 	
 	}
 	update() {
@@ -21,5 +27,8 @@ class GameObject {
 	}
 	lateUpdate() {
 
+	}
+	customDraw() {
+	point(this.x,this.y)
 	}
 }

@@ -9,8 +9,14 @@ class Box extends GameObject{
 	this.oldY;
 	this.typeId = 0;
 	}
+	getValuesName() {
+	return [...super.getValuesName(),"width","height"];
+	}
 	getValues() {
 	return [...super.getValues(),this.width,this.height]
+	}
+	getActualValuesName() {
+	return [...super.getActualValuesName(),"width","height"]
 	}
 	display() {
 		this.oldX = this.x;
@@ -47,6 +53,14 @@ class Box extends GameObject{
 		if(collides) this.onCollide();
 		return collides;
 	    }
+	customDraw() {
+		super.customDraw()
+		stroke(0,0,255);
+		line(this.x+this.width/2,this.y+this.height/2,this.x+this.width/2-30,this.y+this.height/2);
+		stroke(255,0,0);
+		line(this.x+this.width/2,this.y+this.height/2,this.x+this.width/2,this.y+this.height/2-30);
+		stroke(0);
+	}
 //	update() {}
 	onCollide() {}
 }

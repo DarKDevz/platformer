@@ -4,6 +4,7 @@ class End extends Box{
 	this.tag = this.name;
 	this.typeId = 1;
 	}
+	
 	display() {
 		this.oldX = this.x;
 		this.oldY = this.y;

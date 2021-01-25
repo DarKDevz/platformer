@@ -7,6 +7,9 @@ class Text extends GameObject{
 	getValues() {
 	return[...super.getValues(),"\"" + this.text + "\""];
 	}
+	getValuesName() {
+	return[...super.getValuesName(),"text"]
+	}
 	display() {
 	text(this.text,this.x,this.y);
 	}

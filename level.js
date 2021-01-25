@@ -20,6 +20,7 @@ class Level{
 	this.boxes = arr;
 	this.ind = levels.length;
 	this.pos = pos;
+	this.maxPos = 500;
 	}
 	display() {
 	for(let t_box of this.boxes) {

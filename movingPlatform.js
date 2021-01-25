@@ -9,6 +9,12 @@ class movingPlatform extends Box{
 	getValues() {
 	return [...super.getValues(),this.x1,this.x2];
 	}
+	getValuesName() {
+	return [...super.getValuesName(),"placeX1","placeX2"];
+	}
+	getActualValuesName() {
+	return [...super.getActualValuesName(),"x1","x2"]
+	}
 	earlyUpdate() {
 		let t_player = {
 		x: player.old.x,
@@ -23,7 +29,7 @@ class movingPlatform extends Box{
 	update() {
 	}
 	lateUpdate() {
-	if(this.x < this.x2 && this.direction == "r"){this.x += 3;
+	if(this.x+this.width < this.x2 && this.direction == "r"){this.x += 3;
 	}
 	else {
 	 this.direction = "l";}
@@ -31,5 +37,12 @@ class movingPlatform extends Box{
 	this.x -= 3;
 	}
 	if(this.x < this.x1) this.direction = "r";
+	}
+	customDraw() {
+		stroke(0,0,255);
+		line(this.x+this.width/2,this.y+this.height/2,this.x1,this.y+this.height/2);
+		stroke(255,0,0);
+		line(this.x+this.width/2,this.y+this.height/2,this.x2,this.y+this.height/2);
+		stroke(0);
 	}
 }

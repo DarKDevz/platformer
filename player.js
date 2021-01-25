@@ -54,7 +54,7 @@ update (){
 	if(this.vel.x < 0.0001  && this.vel.x > 0) this.vel.x = 0;
 	else if(this.vel.x > -0.0001  && this.vel.x < 0) this.vel.x = 0;
 	this.pos.x += 1*this.vel.x;
-	if(this.pos.y > 500) {
+	if(this.pos.y > levels[activeLevel].maxPos) {
 	this.pos = levels[activeLevel].pos.copy();
 	this.size = createVector(30,70);
 	this.vel = createVector(0,0);
