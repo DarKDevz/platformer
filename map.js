@@ -4,6 +4,7 @@ var classes = {
 	platform : movingPlatform,
 	end: End,
 }
+var cameraPos;
 var lastWasPressed = false;
 var overUI = false;
 var Pressed = lastWasPressed;
@@ -124,20 +125,18 @@ function setup() {
 	try {Paused = true;
 	let className = prompt('Type class name');
 	let tempBox = new classes[className]();
-	let classParameters = prompt(tempBox.getValuesName());
-	classParameters = classParameters.split(',')
-	let newClassParam = [];
-	for(let param of classParameters) {
-	newClassParam.push(parseInt(param) ? parseInt(param) : param)
+	let classParameters = [];
+	for(let param of tempBox.getValuesName()) {
+	let resp = prompt(param)
+	classParameters.push(parseInt(resp) ? parseInt(resp) : resp);
 	}
-	levels[activeLevel].boxes.push(new classes[className](...newClassParam));
+	levels[activeLevel].boxes.push(new classes[className](...classParameters));
 	}catch(e){
-	if(!e=="classes[className] is not a constructor")alert(e);
-	else {alert("Please input a valid class name ex: platform, box, text, end")}
-
+	alert(e);
 	}
 	})
 	lastScene = activeLevel;
+	cameraPos = createVector(0,0);
 }
 //TO-DO: add select option
 function draw() {
@@ -152,6 +151,7 @@ function draw() {
 	//Early Update
 	if(!Paused)levels[activeLevel].earlyUpdate();
 	if(Playing && !Paused)player.camera();
+	else translate(cameraPos.x,cameraPos.y)
 	if(Playing && !Paused)player.checkCollisions();
 	levels[activeLevel].display();
 	if(Playing)player.display();
@@ -166,12 +166,9 @@ function draw() {
 	}
 	/*------------------SelectBox Stuff---------------------*/
     if(lastWasPressed != Pressed && mouseIsPressed && mouseButton === LEFT) {	
-		selectBox.push([
-		Playing && !Paused ? mouseX + player.cameraPos.x: mouseX
-		,Playing && !Paused ? mouseY + player.cameraPos.y: mouseY
-		]);
+		selectBox.push([mouseCoords().x,mouseCoords().y]);
 		}
-        if(mouseIsPressed && mouseButton === CENTER) {	
+    if(mouseIsPressed && mouseButton === CENTER) {	
 		if(selectedObjects.length !== 0) {
 		let diffX = mouseX - pmouseX
 		let diffY = mouseY - pmouseY
@@ -181,6 +178,11 @@ function draw() {
 		t_box.x += diffX;
 		t_box.y += diffY;
 			}
+		}else {
+		let diffX = mouseX - pmouseX
+		let diffY = mouseY - pmouseY	
+		cameraPos.x += diffX;
+		cameraPos.y += diffY;	
 		}
 	}
 	if(lastWasPressed != Pressed && !mouseIsPressed && !overUI) {
@@ -226,8 +228,8 @@ function draw() {
 		//dont update list element if it's the same HUGE performance boost 
 		let divHolder = createDiv();
 		divHolder.html();
-		createSpan(info[i] + ": ").parent(divHolder);
-		let inp = createInput(info[i+1])
+		let _span = createSpan(info[i] + ": ").parent(divHolder);
+		let inp = createInput(info[i+1]).style("display:table-cell;opacity:0.5;")
 		inp.parent(divHolder).input(() => {
 		t_box[info[i+2]] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value();
 		//overWrite info list so you dont update for no reason :)
@@ -248,12 +250,15 @@ function draw() {
 	}
 	}
 }
+function mouseCoords() {
+return createVector(
+	Playing && !Paused ? mouseX + player.cameraPos.x: mouseX - cameraPos.x,
+	Playing && !Paused ? mouseY + player.cameraPos.y: mouseY - cameraPos.y
+)
+}
 function mouseUp() {
 	if(!selectBox[0]) return;
-	selectBox[1] = [
-	Playing && !Paused ? mouseX + player.cameraPos.x: mouseX
-	,Playing && !Paused ? mouseY + player.cameraPos.y: mouseY
-	];
+	selectBox[1] = [mouseCoords().x,mouseCoords().y];
 	let drawSelect = selectBox;
 	let rect1;
 	if(drawSelect[0][0] >= drawSelect[1][0] && drawSelect[0][1] <= drawSelect[1][1]) {
