@@ -23,6 +23,8 @@ var lastScene;
 var inputFile;
 var saveButton;
 var copyButton;
+var removeButton;
+var actionButtons;
 var sideMenu;
 var boxInfo;
 var info = [];
@@ -112,9 +114,15 @@ function setup() {
 	sideMenu.id('sideMenu');
 	sideMenu.mouseOver(() => overUI = true)
 	sideMenu.mouseOut(() => overUI = false)
+	actionButtons = createDiv();
+	actionButtons.id('actionMenu')
+	actionButtons.parent('sideMenu')
 	copyButton = createButton('Copy');
 	copyButton.mousePressed(copyObject)
-	copyButton.parent('sideMenu')
+	copyButton.parent('actionMenu')
+	removeButton = createButton('Remove')
+	removeButton.mousePressed(removeObject)
+	removeButton.parent('actionMenu')
 	setupLevels();
 	button.position(windowWidth / 2 - 45, 0);
 	button.mousePressed(() => {
@@ -143,6 +151,14 @@ function setup() {
 	lastScene = activeLevel;
 	cameraPos = createVector(0,0);
 }
+function removeObject() {
+	if(!boxes[t_box_id]) return;
+	//Delete instance
+	levels[activeLevel].boxes.splice(t_box_id,1);
+	//Delete references to instance
+	t_box_id = null;
+	selectedObjects.splice(selectedObjects.length-1,1);
+}
 function copyObject() {
 	if(!boxes[t_box_id]) return;
 	copiedObj = boxes[t_box_id].getValues()
@@ -169,6 +185,8 @@ function draw() {
 		newCopy[0] = mouseCoords().x
 		newCopy[1] = mouseCoords().y
 		levels[activeLevel].boxes.push(new classes[copyType](...newCopy));
+		levels[activeLevel].boxes[levels[activeLevel].boxes.length - 1].clr = 50
+		selectedObjects.push(levels[activeLevel].boxes.length - 1);
 		}
 	}
 	pasted = true;
@@ -263,7 +281,7 @@ function draw() {
 		let divHolder = createDiv();
 		divHolder.html();
 		let _span = createSpan(info[i] + ": ").parent(divHolder);
-		let inp = createInput(info[i+1]).style("display:table-cell;opacity:0.5;")
+		let inp = createInput(info[i+1]).style("opacity:0.5;")
 		inp.parent(divHolder).input(() => {
 		t_box[info[i+2]] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value();
 		//overWrite info list so you dont update for no reason :)
