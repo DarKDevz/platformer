@@ -50,7 +50,7 @@ update (){
 	this.pos.y += 1*this.vel.y*(deltaTime / 16)
 	//if(this.grounded && !this.colliding) this.grounded = false;
 	//X vel
-	this.vel.x = this.vel.x * .7 * (deltaTime / 16)
+	this.vel.x = this.vel.x * .7
 	if(this.vel.x < 0.0001  && this.vel.x > 0) this.vel.x = 0;
 	else if(this.vel.x > -0.0001  && this.vel.x < 0) this.vel.x = 0;
 	this.pos.x += 1*this.vel.x;
@@ -63,7 +63,7 @@ update (){
 	}
 	collision(id) {
 	let t_box = boxes[id];
-	if(t_box)
+	if(t_box && t_box.isCollidable)
 	return t_box.collision(this);
 	}
 	posCenter() {

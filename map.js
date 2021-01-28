@@ -197,6 +197,9 @@ function draw() {
 	background(150, 230, 240);
 	if(lastScene != activeLevel) {
 	selectedObjects = [];
+	for(let t_info of infoDivs) {
+		t_info.remove();
+	}
 	}
 	lastScene = activeLevel;
 	/*-------------PLAYER AND LEVEL DRAWING-----------------*/
@@ -281,11 +284,11 @@ function draw() {
 		let divHolder = createDiv();
 		divHolder.html();
 		let _span = createSpan(info[i] + ": ").parent(divHolder);
-		let inp = createInput(info[i+1]).style("opacity:0.5;")
+		let inp = createInput(info[i+1].toString().replace('"','').replace('\"','')).style("opacity:0.5;")
 		inp.parent(divHolder).input(() => {
 		t_box[info[i+2]] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value();
 		//overWrite info list so you dont update for no reason :)
-		info[i+1] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value();
+		info[i+1] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value().replace('"','');
 		});
 		infoDivs.push(divHolder);
 		infoDivs[infoDivs.length-1].parent('sideMenu')
@@ -345,7 +348,7 @@ function mouseUp() {
 	selectedObjects = [];
 	for(t_box_id in boxes) {
 		let t_box = boxes[t_box_id];
-		let c = collide(rect1,t_box);
+		let c = t_box.collision(rect1,false);
 		if(c) selectedObjects.push(t_box_id);
 		t_box.clr = c * 50
 		//console.log(c);
