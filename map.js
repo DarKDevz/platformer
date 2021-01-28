@@ -286,9 +286,9 @@ function draw() {
 		let _span = createSpan(info[i] + ": ").parent(divHolder);
 		let inp = createInput(info[i+1].toString().replace('"','').replace('\"','')).style("opacity:0.5;")
 		inp.parent(divHolder).input(() => {
-		t_box[info[i+2]] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value();
+		t_box[info[i+2]] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value().replace('"','').replace('\"','');
 		//overWrite info list so you dont update for no reason :)
-		info[i+1] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value().replace('"','');
+		info[i+1] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value().replace('"','').replace('\"','');
 		});
 		infoDivs.push(divHolder);
 		infoDivs[infoDivs.length-1].parent('sideMenu')
@@ -299,7 +299,7 @@ function draw() {
 		let infoI = 0;
 		for(let t_info of infoDivs) {
 			//Hacky solution to fix updating dom every time
-			t_info.child()[1].value = info[infoI+1];
+			t_info.child()[1].value = info[infoI+1].toString().replace('"','').replace('\"','');
 			infoI+=3;
 		}
 	}
