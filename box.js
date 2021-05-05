@@ -8,6 +8,7 @@ class Box extends GameObject{
 	this.oldX;
 	this.oldY;
 	this.typeId = 0;
+	this.isCollidable = true;
 	}
 	getValuesName() {
 	return [...super.getValuesName(),"width","height"];
