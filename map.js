@@ -131,7 +131,7 @@ function setup() {
 	Paused = !Paused;
 	});
 	addButton.mousePressed(()=>{
-	try {Paused = true;
+	try {
 	let tempBox = new classes[addSelect.value()]();
 	let classParameters = [];
 	for(let param of tempBox.getValuesName()) {
