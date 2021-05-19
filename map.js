@@ -4,9 +4,14 @@ var classes = {
 	platform : movingPlatform,
 	end: End,
 }
+var classesInv = {
+	Box : "box",
+	Text : "text",
+	movingPlatform : "platform",
+	End : "end",
+}
 var pasted = false;
-var copiedObj;
-var copyType;
+var copiedObjs = [];
 var cameraPos;
 var lastWasPressed = false;
 var overUI = false;
@@ -29,6 +34,8 @@ var sideMenu;
 var boxInfo;
 var info = [];
 var infoDivs = [];
+var infoDivsHolder = [];
+var infoIndexAdded = [];
 var id;
 function windowResized() {
 	resizeCanvas(windowWidth,windowHeight);
@@ -37,52 +44,39 @@ function windowResized() {
 	sideMenu.position(windowWidth - 250,0);
 }
 function JsonMap(file) {
-	boxes = [];
 	levels = [];
-	eval(file.data);
-	setupLevels();
+	boxes = [];
+	var newLevels = JSON.parse(file.data)
+	for(let level_id in newLevels) {
+		let newLevel = newLevels[level_id];
+		let t_boxes = [];
+		for(let object of newLevel) {
+			let _objInd = object.shift()
+			t_boxes.push(addObj(_objInd,object))
+		}
+		addLevel(t_boxes, createVector(400,-10));
+	}
+	levels[0].loadLevel();
+}
+function addObj(ind,arr) {
+	switch(ind) {
+	case 0:
+	return (new Box(...arr));
+	break;
+	case 1:
+	return (new End(...arr));
+	break;
+	case 2:
+	return (new movingPlatform(...arr));
+	break;
+	case 3:
+	return (new Text(...arr))
+	}
 }
 function saveMap() {
+	
 	let jsMap = createWriter('t_map_t.js');
-	/*--------------addObj Code-------------*/
-	jsMap.write(['var t_boxes = [];'+
-	'let addLevel = function(arr, pos) {levels.push(new Level(arr, pos))};'+
-	'function addObj(ind,arr) {'+
-	'switch(ind) {'+
-		'case 0:'+
-		't_boxes.push(new Box(...arr));'+
-		'break;'+
-		'case 1:'+
-		't_boxes.push(new End(...arr));'+
-		'break;'+
-		'case 2:'+
-		't_boxes.push(new movingPlatform(...arr));'+
-		'break;'+
-		'case 3:'+
-		't_boxes.push(new Text(...arr));'+
-		'break;'+
-		'}'+
-		'}']);
-	jsMap.write("function setupLevels() {");
-	for(tLid in levels) {
-		console.log(tLid);
-		for(t_box of levels[tLid].boxes) {
-		let arguments = "[";
-		for(t_arg_id in t_box.getValues()) {
-		let t_arg = t_box.getValues()[t_arg_id];
-		if(t_arg_id != t_box.getValues().length - 1) {
-		arguments += t_arg + ",";
-		}else {
-		arguments += t_arg + "]);";
-			}
-		}
-		jsMap.write("addObj(" + t_box.typeId +","+ arguments);
-		}
-		jsMap.write("addLevel(t_boxes, createVector(" + levels[tLid].pos.x +", " + levels[tLid].pos.y + "));")
-		jsMap.write("t_boxes = [];")
-	}
-	jsMap.write("levels[0].loadLevel();");
-	jsMap.write("}")
+	jsMap.write(MapJson());
 	jsMap.close();
 }
 function setup() {
@@ -123,7 +117,7 @@ function setup() {
 	removeButton = createButton('Remove')
 	removeButton.mousePressed(removeObject)
 	removeButton.parent('actionMenu')
-	setupLevels();
+	JsonMap({data:"{\"0\":[[0,150,250,170,50],[0,350,100,100,50],[0,-1,400,810,32],[1,610,200,60,100],[0,600,300,150,32],[0,600,300,32,100],[2,301,350,60,50,0,500]],\"1\":[[0,350,100,100,50],[0,-1,400,890,32],[0,600,300,260,32],[0,860,300,10,100],[2,450,350,60,50,350,600],[3,500,330,\"S to crouch\"],[1,790,350,60,50]],\"2\":[[0,150,250,170,50],[0,350,100,100,50],[0,-1,400,810,32],[0,50,360,50,32],[0,600,300,150,32],[0,600,300,32,100]]}"});
 	button.position(windowWidth / 2 - 45, 0);
 	button.mousePressed(() => {
 	levels[activeLevel].loadLevel();
@@ -152,41 +146,50 @@ function setup() {
 	cameraPos = createVector(0,0);
 }
 function removeObject() {
-	if(!boxes[t_box_id]) return;
-	//Delete instance
-	levels[activeLevel].boxes.splice(t_box_id,1);
-	//Delete references to instance
-	t_box_id = null;
-	selectedObjects.splice(selectedObjects.length-1,1);
+	for(let selectedId in selectedObjects) {
+	let objId = selectedObjects[selectedId];
+	delete levels[activeLevel].boxes[objId];
+	delete boxes[objId]
+	delete selectedObjects[selectedId];
+	}
+	//filter empty
+	boxes = boxes.filter((_) => {return _})
+	levels[activeLevel].boxes = levels[activeLevel].boxes.filter((_) => {return _})
+	selectedObjects = selectedObjects.filter((_)=>{return _})
 }
 function copyObject() {
-	if(!boxes[t_box_id]) return;
-	copiedObj = boxes[t_box_id].getValues()
-	switch(boxes[t_box_id].typeId) {
-	case 0:
-			copyType = "box"
-		break;
-	case 1:
-		copyType = "end"
-	break;
-	case 2:
-		copyType = "platform"
-	break;
-	case 3:
-		copyType = "text"
-	break;
+	copiedObjs = [];
+	for(let objId of selectedObjects) {
+		let copiedObj = {
+		vals:boxes[objId].getValues(),
+		type:boxes[objId].typeId
+		}
+		copiedObjs.push(copiedObj)
 	}
 }
 function draw() {
 	if(keyIsDown(17) && keyIsDown(86)) {
 	if(!pasted) {
-		if(!overUI && copiedObj) {
-		let newCopy = copiedObj
-		newCopy[0] = mouseCoords().x
-		newCopy[1] = mouseCoords().y
-		levels[activeLevel].boxes.push(new classes[copyType](...newCopy));
-		levels[activeLevel].boxes[levels[activeLevel].boxes.length - 1].clr = 50
-		selectedObjects.push(levels[activeLevel].boxes.length - 1);
+		if(!overUI) {
+			let firstObjPos;
+			for(let copiedObj of copiedObjs) {
+				let _obj = (addObj(copiedObj.type,copiedObj.vals));
+				let index  = levels[activeLevel].boxes.push(_obj);
+				index--;
+				obj = levels[activeLevel].boxes[index];
+				levels[activeLevel].boxes[index].clr = 50;
+				let offsetPosX = mouseCoords().x;
+				let offsetPosY = mouseCoords().y;
+				if(!firstObjPos) firstObjPos = [obj.x,obj.y];
+				else {
+					offsetPosX -= firstObjPos[0]-obj.x;
+					offsetPosY -= firstObjPos[1]-obj.y;
+				}
+				console.log(boxes[index])
+				obj.offSet(offsetPosX,offsetPosY);
+				console.log(boxes[index])
+				selectedObjects.push(index);	
+			}
 		}
 	}
 	pasted = true;
@@ -195,13 +198,6 @@ function draw() {
 	}
 	clear();
 	background(150, 230, 240);
-	if(lastScene != activeLevel) {
-	selectedObjects = [];
-	for(let t_info of infoDivs) {
-		t_info.remove();
-	}
-	}
-	lastScene = activeLevel;
 	/*-------------PLAYER AND LEVEL DRAWING-----------------*/
 	if(Playing && !Paused)player.update();
 	//Early Update
@@ -224,19 +220,16 @@ function draw() {
     if(lastWasPressed != Pressed && mouseIsPressed && mouseButton === LEFT) {	
 		selectBox.push([mouseCoords().x,mouseCoords().y]);
 		}
-    if(mouseIsPressed && mouseButton === CENTER) {	
-		if(selectedObjects.length !== 0) {
+    if(mouseIsPressed && mouseButton === CENTER) {
 		let diffX = mouseX - pmouseX
-		let diffY = mouseY - pmouseY
+		let diffY = mouseY - pmouseY		
+		if(selectedObjects.length !== 0) {
 		for(t_box_id of selectedObjects) {
 		let t_box = boxes[t_box_id];
 		t_box.customDraw();
-		t_box.x += diffX;
-		t_box.y += diffY;
+		t_box.offSet(t_box.x += diffX,t_box.y += diffY);
 			}
 		}else {
-		let diffX = mouseX - pmouseX
-		let diffY = mouseY - pmouseY	
 		cameraPos.x += diffX;
 		cameraPos.y += diffY;	
 		}
@@ -246,7 +239,16 @@ function draw() {
 	}else if(selectBox[0] && mouseIsPressed && !selectBox[2] && !overUI) {
 	mouseUp();
 	}
-	for(t_box_id of selectedObjects) {
+	//If switching scenes remove selected
+	if(lastScene != activeLevel) {
+	selectedObjects = [];
+	for(let t_info of infoDivs) {
+		t_info.remove();
+	}
+	}
+	lastScene = activeLevel;
+	
+	for(let t_box_id of selectedObjects) {
 		let t_box = boxes[t_box_id];
 		t_box.customDraw();
 	}
@@ -257,10 +259,14 @@ function draw() {
 	Pressed = mouseIsPressed;
 	}
 	if(selectedObjects.length == 1) {
-	let t_box = boxes[selectedObjects[0]];
+	OpenEditMenu(selectedObjects[0])
+	}
+}
+function OpenEditMenu(objectId) {
+	let t_box = boxes[objectId];
 	let lastInfo = info;
 	let lastId = id;
-	id = selectedObjects[0];
+	id = objectId;
 	info = [];
 	for(t_val_id in t_box.getValues()) {
 	info.push(t_box.getValuesName()[t_val_id])
@@ -274,13 +280,16 @@ function draw() {
 		return;
 	}
 	if(lastId != id) {
-		for(let t_info of infoDivs) {
-			t_info.remove();
-		}
-		infoDivs = [];
+			for(let t_info of infoDivs) {
+				t_info.remove();
+			infoDivs = [];
+		}		
+		if(!infoIndexAdded.includes(id)) {
+			infoDivsHolder = infoDivs;
+			infoIndexAdded.push(id);
+			}
 		for(let i = 0; i < info.length; i += 3) {
 		//Info shit                                 
-		//dont update list element if it's the same HUGE performance boost 
 		let divHolder = createDiv();
 		divHolder.html();
 		let _span = createSpan(info[i] + ": ").parent(divHolder);
@@ -299,16 +308,19 @@ function draw() {
 		let infoI = 0;
 		for(let t_info of infoDivs) {
 			//Hacky solution to fix updating dom every time
-			t_info.child()[1].value = info[infoI+1].toString().replace('"','').replace('\"','');
+			if(infoI < info.length)
+				t_info.child()[1].value = info[infoI+1].toString().replace('"','').replace('\"','');
 			infoI+=3;
 		}
 	}
-	}
 }
+function addMenuInput(name,set,get) {
+}
+function editMenuInput(name,set,get) {}
 function mouseCoords() {
 return createVector(
-	Playing && !Paused ? mouseX + player.cameraPos.x: mouseX - cameraPos.x,
-	Playing && !Paused ? mouseY + player.cameraPos.y: mouseY - cameraPos.y
+	round(Playing && !Paused ? mouseX + player.cameraPos.x: mouseX - cameraPos.x),
+	round(Playing && !Paused ? mouseY + player.cameraPos.y: mouseY - cameraPos.y)
 )
 }
 function mouseUp() {

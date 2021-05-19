@@ -4,7 +4,9 @@ class End extends Box{
 	this.tag = this.name;
 	this.typeId = 1;
 	}
-	
+	getClassName() {
+	return "End"
+	}
 	display() {
 		this.oldX = this.x;
 		this.oldY = this.y;

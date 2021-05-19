@@ -6,6 +6,17 @@ class movingPlatform extends Box{
 		this.x2 = x2;
 		this.typeId = 2;
 	}
+	getClassName() {
+	return "movingPlatform"
+	}
+	offSet(x,y) {
+	let diff1X = this.x1 - this.x;
+	let diff2X = this.x2 - this.x;
+	super.offSet(x,y);
+	//Gets new position with offset
+	this.x1 = this.x + diff1X;
+	this.x2 = this.x + diff2X;
+	}
 	getValues() {
 	return [...super.getValues(),this.x1,this.x2];
 	}

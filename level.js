@@ -16,11 +16,11 @@ function addObj(ind,arr) {
 	}
 }
 class Level{
-	constructor(arr,pos) {
+	constructor(arr,pos,maxPos) {
 	this.boxes = arr;
 	this.ind = levels.length;
 	this.pos = pos;
-	this.maxPos = 500;
+	this.maxPos = maxPos;
 	}
 	display() {
 	for(let t_box of this.boxes) {
@@ -37,6 +37,12 @@ class Level{
 	t_box.earlyUpdate();
 	   }
 	}
+	getLevelValues() {
+	return[this.ind,this.pos,this.maxPos]
+	}
+	getLevelValueNames() {
+	return["level Index","starting Position","Max Y Pos"]
+	}
 	loadLevel() {
 	player.pos = this.pos.copy();
 	player.cameraPos = player.pos.copy();
@@ -48,7 +54,37 @@ class Level{
 	boxes = this.boxes;
 	activeLevel = this.ind;
 	}
+	toJSON() {
+		let all = "\""+this.ind+"\":[";
+		let jsonString;
+		for(let t_box of this.boxes) {
+		jsonString = "[";
+		jsonString += t_box.typeId+ ",";
+		for(let t_arg_id in t_box.getValues()) {
+		let t_arg = t_box.getValues()[t_arg_id];
+		if(t_arg_id != t_box.getValues().length - 1) {
+		jsonString += t_arg + ",";
+		}else {
+		jsonString += t_arg + "],";
+			}
+		}
+		all += jsonString;
+	}
+	all = all.substring(0,all.length-1);
+	all += "]"
+	return all;
+	}
 }
-addLevel = function(arr, pos) {
-levels.push(new Level(arr, pos))
+function MapJson() {
+	let mapData = "{";
+	for(let level of levels) {
+	mapData += level.toJSON();
+	mapData += ","
+	}
+	mapData = mapData.substring(0,mapData.length-1);
+	mapData += "}"
+	return mapData;
+}
+addLevel = function(arr, pos, maxPos = 500) {
+levels.push(new Level(arr, pos, maxPos))
 }
