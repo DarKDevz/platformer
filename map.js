@@ -1,14 +1,8 @@
 var classes = {
-	box : Box,
-	text : Text,
-	platform : movingPlatform,
-	end: End,
-}
-var classesInv = {
-	Box : "box",
-	Text : "text",
-	movingPlatform : "platform",
-	End : "end",
+	Box : Box,
+	Text : Text,
+	Platform : movingPlatform,
+	End: End,
 }
 var pasted = false;
 var copiedObjs = [];
@@ -37,6 +31,7 @@ var LastInfo = [];
 var infoDivs = [];
 var infoDivsHolder = [];
 var infoIndexes = [];
+var addSelect;
 var id;
 function windowResized() {
 	resizeCanvas(windowWidth,windowHeight);
@@ -85,16 +80,22 @@ function setup() {
 	player = new Player();
 	button = createButton('Play');
 	inputFile = createFileInput(JsonMap);
-	inputFile.position(70,0);
+	inputFile.position(145,0);
 	inputFile.style("color: transparent");
 	inputFile.mouseOver(() => overUI = true)
 	inputFile.mouseOut(() => overUI = false)
 	addButton = createButton('add New')
-	addButton.position(0,0);
+	addButton.position(75,0);
 	addButton.mouseOver(() => overUI = true)
 	addButton.mouseOut(() => overUI = false)
+	addSelect = createSelect();
+	addSelect.position(0, 0);
+	addSelect.option("Box")
+	addSelect.option("Platform")
+	addSelect.option("Text")
+	addSelect.option("End")
 	saveButton = createButton("Save");
-	saveButton.position(145,0);
+	saveButton.position(220,0);
 	saveButton.mousePressed(saveMap);
 	saveButton.mouseOver(() => overUI = true)
 	saveButton.mouseOut(() => overUI = false)
@@ -131,14 +132,14 @@ function setup() {
 	});
 	addButton.mousePressed(()=>{
 	try {Paused = true;
-	let className = prompt('Type class name');
-	let tempBox = new classes[className]();
+	let tempBox = new classes[addSelect.value()]();
 	let classParameters = [];
 	for(let param of tempBox.getValuesName()) {
 	let resp = prompt(param)
 	classParameters.push(parseInt(resp) ? parseInt(resp) : resp);
 	}
-	levels[activeLevel].boxes.push(new classes[className](...classParameters));
+	levels[activeLevel].boxes.push(new classes[addSelect.value()](...classParameters));
+	levels[activeLevel].reloadBoxes();
 	}catch(e){
 	alert(e);
 	}
