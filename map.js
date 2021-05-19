@@ -33,9 +33,10 @@ var actionButtons;
 var sideMenu;
 var boxInfo;
 var info = [];
+var LastInfo = [];
 var infoDivs = [];
 var infoDivsHolder = [];
-var infoIndexAdded = [];
+var infoIndexes = [];
 var id;
 function windowResized() {
 	resizeCanvas(windowWidth,windowHeight);
@@ -149,12 +150,11 @@ function removeObject() {
 	for(let selectedId in selectedObjects) {
 	let objId = selectedObjects[selectedId];
 	delete levels[activeLevel].boxes[objId];
-	delete boxes[objId]
 	delete selectedObjects[selectedId];
 	}
 	//filter empty
-	boxes = boxes.filter((_) => {return _})
 	levels[activeLevel].boxes = levels[activeLevel].boxes.filter((_) => {return _})
+	levels[activeLevel].reloadBoxes();
 	selectedObjects = selectedObjects.filter((_)=>{return _})
 }
 function copyObject() {
@@ -167,9 +167,8 @@ function copyObject() {
 		copiedObjs.push(copiedObj)
 	}
 }
-function draw() {
-	if(keyIsDown(17) && keyIsDown(86)) {
-	if(!pasted) {
+function pasteObjects() {
+if(!pasted) {
 		if(!overUI) {
 			let firstObjPos;
 			for(let copiedObj of copiedObjs) {
@@ -185,14 +184,17 @@ function draw() {
 					offsetPosX -= firstObjPos[0]-obj.x;
 					offsetPosY -= firstObjPos[1]-obj.y;
 				}
-				console.log(boxes[index])
+				levels[activeLevel].reloadBoxes();
 				obj.offSet(offsetPosX,offsetPosY);
-				console.log(boxes[index])
 				selectedObjects.push(index);	
 			}
 		}
 	}
 	pasted = true;
+}
+function draw() {
+	if(keyIsDown(17) && keyIsDown(86)) {
+	pasteObjects();
 	}else {
 	pasted = false;
 	}
@@ -258,65 +260,67 @@ function draw() {
 	lastWasPressed = Pressed;
 	Pressed = mouseIsPressed;
 	}
-	if(selectedObjects.length == 1) {
-	OpenEditMenu(selectedObjects[0])
+	if(selectedObjects.length != 0) {
+	OpenEditMenu()
 	}
 }
-function OpenEditMenu(objectId) {
-	let t_box = boxes[objectId];
-	let lastInfo = info;
-	let lastId = id;
-	id = objectId;
+function OpenEditMenu() {
+	lastInfo = info;
 	info = [];
+	let lastIndexes = infoIndexes;
+	infoIndexes = [];
+	for(let objectId of selectedObjects) {	
+	let t_box = boxes[objectId];
+	infoIndexes.push(objectId);
 	for(t_val_id in t_box.getValues()) {
+	info.push(objectId);
 	info.push(t_box.getValuesName()[t_val_id])
 	info.push(t_box.getValues()[t_val_id])
 	info.push(t_box.getActualValuesName()[t_val_id])
 	}
-	let lastInfoDivs = infoDivs;
-	//dont update list if it's the same as before
-	//equals array prototype at bottom!
-	if(lastInfo.equals(info)) {
-		return;
 	}
-	if(lastId != id) {
-			for(let t_info of infoDivs) {
-				t_info.remove();
-			infoDivs = [];
-		}		
-		if(!infoIndexAdded.includes(id)) {
-			infoDivsHolder = infoDivs;
-			infoIndexAdded.push(id);
-			}
-		for(let i = 0; i < info.length; i += 3) {
-		//Info shit                                 
-		let divHolder = createDiv();
-		divHolder.html();
-		let _span = createSpan(info[i] + ": ").parent(divHolder);
-		let inp = createInput(info[i+1].toString().replace('"','').replace('\"','')).style("opacity:0.5;")
-		inp.parent(divHolder).input(() => {
-		t_box[info[i+2]] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value().replace('"','').replace('\"','');
-		//overWrite info list so you dont update for no reason :)
-		info[i+1] = parseInt(inp.value()) ? parseInt(inp.value()) : inp.value().replace('"','').replace('\"','');
-		});
-		infoDivs.push(divHolder);
-		infoDivs[infoDivs.length-1].parent('sideMenu')
-		}
-		}
-	else {
-		//update values
+	if(info.equals(lastInfo)) {
+	return;
+	}
+	if(lastIndexes.equals(infoIndexes)) {
+		//edit existing values
 		let infoI = 0;
 		for(let t_info of infoDivs) {
 			//Hacky solution to fix updating dom every time
 			if(infoI < info.length)
-				t_info.child()[1].value = info[infoI+1].toString().replace('"','').replace('\"','');
-			infoI+=3;
+				t_info.child()[1].value = info[infoI+2].toString().replace('"','').replace('\"','');
+			infoI+=4;
+		}
+	} else {
+	for(let t_info of infoDivs) {
+			t_info.remove();
+			infoDivs = [];
+	}
+	console.log(info);
+	for(let i = 0; i< info.length; i+=4) {
+	console.log(info[i]);
+	addMenuInput(info[i+1],(val) => {
+			let actValue = parseInt(val) ? parseInt(val) : val.replace('"','').replace('\"','')
+			boxes[info[i]][info[i+3]] = actValue;
+			info[i+2] = actValue;
+		},info[i+2])
 		}
 	}
 }
 function addMenuInput(name,set,get) {
+	console.log(name,set,get)
+	let divHolder = createDiv();
+		divHolder.html();
+		let _span = createSpan(name + ": ").parent(divHolder);
+		let inp = createInput(get.toString().replace('"','').replace('\"','')).style("opacity:0.5;")
+		inp.parent(divHolder).input(() => {
+		set(inp.value());
+		});
+		infoDivs.push(divHolder);
+		infoDivs[infoDivs.length-1].parent('sideMenu')
 }
-function editMenuInput(name,set,get) {}
+function editMenuInput(index,name,set,get) {
+}
 function mouseCoords() {
 return createVector(
 	round(Playing && !Paused ? mouseX + player.cameraPos.x: mouseX - cameraPos.x),

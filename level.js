@@ -51,8 +51,11 @@ class Level{
 	player.colliding = false;
 	player.collidedId = null;
 	player.vel = createVector(0,0);
-	boxes = this.boxes;
+	this.reloadBoxes();
 	activeLevel = this.ind;
+	}
+	reloadBoxes() {
+	boxes = this.boxes;
 	}
 	toJSON() {
 		let all = "\""+this.ind+"\":[";
