@@ -131,7 +131,6 @@ function setup() {
 	Paused = !Paused;
 	});
 	addButton.mousePressed(()=>{
-	try {
 	let tempBox = new classes[addSelect.value()]();
 	let classParameters = [];
 	for(let param of tempBox.getValuesName()) {
@@ -140,9 +139,6 @@ function setup() {
 	}
 	levels[activeLevel].boxes.push(new classes[addSelect.value()](...classParameters));
 	levels[activeLevel].reloadBoxes();
-	}catch(e){
-	alert(e);
-	}
 	})
 	lastScene = activeLevel;
 	cameraPos = createVector(0,0);
