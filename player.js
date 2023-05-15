@@ -6,6 +6,7 @@ class Player {
 	this.vel= createVector(0,0);
 	this.old= createVector(0,0);
 	this.cameraPos = this.pos.copy();
+	this.godMode = false;
 	this.grounded= false;
 	this.colliding= false;
 	this.collidedId= null;	
@@ -19,6 +20,9 @@ update (){
 	this.old = this.pos.copy();
 	//controlller
 	//Space
+	if(keyIsDown(87) && this.godMode) {
+	this.vel.y = -6.7
+	}
 	if (keyIsDown(87) && this.grounded) {
 		this.grounded = false;
 		this.vel.y = -6.7;
@@ -55,11 +59,14 @@ update (){
 	else if(this.vel.x > -0.0001  && this.vel.x < 0) this.vel.x = 0;
 	this.pos.x += 1*this.vel.x;
 	if(this.pos.y > levels[activeLevel].maxPos) {
+	this.playerDeath();
+		}
+	}
+	playerDeath()  {
 	this.pos = levels[activeLevel].pos.copy();
 	this.size = createVector(30,70);
 	this.vel = createVector(0,0);
 	this.old = createVector(0,0);
-		}
 	}
 	collision(id) {
 	let t_box = boxes[id];
