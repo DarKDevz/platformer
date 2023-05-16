@@ -9,13 +9,10 @@ class movingPlatform extends Box{
 	getClassName() {
 	return "movingPlatform"
 	}
-	offSet(x,y) {
-	let diff1X = this.x1 - this.x;
-	let diff2X = this.x2 - this.x;
+	offSet(x,y,diffX=0,diffY=0) {
+	this.x1 += diffX;
+	this.x2 += diffX;
 	super.offSet(x,y);
-	//Gets new position with offset
-	this.x1 = this.x + diff1X;
-	this.x2 = this.x + diff2X;
 	}
 	getValues() {
 	return [...super.getValues(),this.x1,this.x2];
