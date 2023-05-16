@@ -79,13 +79,13 @@ class Level{
 	}
 }
 function MapJson() {
-	let mapData = "{";
+	let mapData = "MapData={data:`{";
 	for(let level of levels) {
 	mapData += level.toJSON();
 	mapData += ","
 	}
 	mapData = mapData.substring(0,mapData.length-1);
-	mapData += "}"
+	mapData += "}`}"
 	return mapData;
 }
 addLevel = function(arr, pos, maxPos = 500) {
