@@ -21,7 +21,9 @@ class Player {
     update() {
         this.old = this.pos.copy();
         //controlller
-        if (mouseIsPressed) {
+        let overui = window['overUI'] !== undefined ? overUI : false;
+        if (mouseIsPressed && !overui) {
+            console.log(overui)
             this.shootTowards()
         }
         //Space

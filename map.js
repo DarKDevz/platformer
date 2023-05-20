@@ -93,7 +93,7 @@ function setup() {
     uiElement(saveButton);
 
     pauseButton = uiButton('Paused', windowWidth / 2, 0);
-
+    pauseButton.mousePressed(() => { Paused = !Paused });
     sideMenu = createDiv();
     sideMenu.size(300);
     sideMenu.style("max-height:calc(100vh - 20px);overflow:auto;height:fit-content;background-color: rgba(0, 0, 0, 0.25);");
@@ -128,9 +128,20 @@ function setup() {
     cameraPos = createVector(0, 0);
 }
 let oldremove = removeObject;
-removeObject = function() {
-    selectedObjects = [];
+removeObject = function(id) {
+    selectedObjects = removeAndDecrease(selectedObjects, id);
     return oldremove(...arguments);
+}
+
+function removeAndDecrease(arr, value) {
+    const index = arr.indexOf(value.toString());
+    if (index !== -1) {
+        arr.splice(index, 1); // Remove the value from the array
+        for (let i = index; i < arr.length; i++) {
+            arr[i] = (parseInt(arr[i], 10) - 1).toString(); // Decrease subsequent values by 1
+        }
+    }
+    return arr;
 }
 
 function removeMapObject() {
