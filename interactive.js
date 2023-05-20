@@ -49,7 +49,7 @@ class Interactive extends GameObject {
     display() {
         this.oldX = this.x;
         this.oldY = this.y;
-        fill(255, 0, 0);
+        fill(255, 0, 255);
         //it wants a diameter
         circle(this.x, this.y, this.r * 2);
     }
