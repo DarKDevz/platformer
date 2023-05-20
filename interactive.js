@@ -43,7 +43,7 @@ class Interactive extends GameObject {
             height: oH,
         }
         let collides = collideCircle(rect, this);
-        if (collides) this.onCollide();
+        if (collides && player === obj) this.onCollide();
         return collides;
     }
     display() {

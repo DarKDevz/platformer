@@ -140,6 +140,12 @@ function removeAndDecrease(arr, value) {
         for (let i = index; i < arr.length; i++) {
             arr[i] = (parseInt(arr[i], 10) - 1).toString(); // Decrease subsequent values by 1
         }
+    } else {
+        for (let i = 0; i < arr.length; i++) {
+            if (parseInt(arr[i], 10) > parseInt(value, 10)) {
+                arr[i] = (parseInt(arr[i], 10) - 1).toString(); // Decrease subsequent values by 1
+            }
+        }
     }
     return arr;
 }
