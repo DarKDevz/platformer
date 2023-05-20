@@ -3,7 +3,8 @@ var classes = {
     Text: Text,
     Platform: movingPlatform,
     End: End,
-    Enemy: Enemy
+    Enemy: Enemy,
+    Interact: Interactive
 }
 var makingNew = false;
 var newBox;
@@ -41,7 +42,7 @@ function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
     pauseButton.position(windowWidth / 2, 0);
     button.position(windowWidth / 2 - 45, 0);
-    sideMenu.position(windowWidth - 250, 0);
+    sideMenu.position(windowWidth - 300, 0);
 }
 
 function saveMap() {
@@ -81,21 +82,24 @@ function setup() {
     uiElement(inputFile);
 
     addButton = uiButton('add New', 75, 0);
-
+    addButton.mousePressed(() => { makingNew = true; })
     addSelect = createSelect();
     addSelect.position(0, 0);
     Object.keys(classes).forEach(element => {
         addSelect.option(element)
     });
     saveButton = uiButton("Save", 220, 0);
+    saveButton.mousePressed(saveMap);
     uiElement(saveButton);
 
     pauseButton = uiButton('Paused', windowWidth / 2, 0);
 
     sideMenu = createDiv();
-    sideMenu.style("background-color: rgba(0, 0, 0, 0.25);");
-    sideMenu.size(250, 450);
-    sideMenu.position(windowWidth - 250, 0);
+    sideMenu.size(300);
+    sideMenu.style("max-height:calc(100vh - 20px);overflow:auto;height:fit-content;background-color: rgba(0, 0, 0, 0.25);");
+    //sideMenu.size(300, 200);
+
+    sideMenu.position(windowWidth - sideMenu.size().width, 0);
     sideMenu.id('sideMenu');
     uiElement(sideMenu);
 
@@ -109,7 +113,7 @@ function setup() {
     uiElement(copyButton);
 
     removeButton = createButton('Remove');
-    removeButton.mousePressed(removeObject);
+    removeButton.mousePressed(removeMapObject);
     removeButton.parent('actionMenu');
     uiElement(removeButton);
 
@@ -124,7 +128,7 @@ function setup() {
     cameraPos = createVector(0, 0);
 }
 
-function removeObject() {
+function removeMapObject() {
     for (let selectedId in selectedObjects) {
         let objId = selectedObjects[selectedId];
         delete levels[activeLevel].boxes[objId];
@@ -314,7 +318,6 @@ function OpenEditMenu() {
 }
 
 function addMenuInput(name, set, get) {
-    console.log(arguments)
     let divHolder = createDiv();
     divHolder.html();
     let _span = createSpan(name + ": ").parent(divHolder);

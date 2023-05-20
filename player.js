@@ -11,6 +11,8 @@ class Player {
         this.colliding = false;
         this.collidedId = null;
         this.groundedId = null;
+        this.shootingDelay = 1000; // Delay between shots in milliseconds
+        this.lastShotTime = 0; // Time of the last shot in milliseconds
     }
     display() {
         fill(0)
@@ -19,6 +21,9 @@ class Player {
     update() {
         this.old = this.pos.copy();
         //controlller
+        if (mouseIsPressed) {
+            this.shootTowards()
+        }
         //Space
         if (keyIsDown(87) && this.godMode) {
             this.vel.y = -6.7
@@ -125,6 +130,23 @@ class Player {
         let tcenter = this.center(bsize, bpos);
         let pcenter = this.center(this.size, this.old);
         if (abs(pcenter.x - tcenter.x) > (bsize.x / 2 + this.size.x / 2) - 1) { this.xCollision(id) } else { this.yCollision(id) }
+    }
+    shootTowards() {
+        let toMouse = createVector(-(width / 2 - mouseX), -(height / 2 - mouseY));
+        const direction = {
+            x: cos(toMouse.heading()),
+            y: sin(toMouse.heading())
+        };
+        console.log(direction)
+        const currentTime = Date.now();
+        const timeSinceLastShot = currentTime - this.lastShotTime;
+
+        if (timeSinceLastShot >= this.shootingDelay) {
+            let bullet = new Bullet(this.posCenter().x, this.posCenter().y, direction.x, direction.y);
+            levels[activeLevel].boxes.push(bullet);
+            levels[activeLevel].reloadBoxes();
+            this.lastShotTime = currentTime;
+        }
     }
     checkCollisions() {
         let found = false;
