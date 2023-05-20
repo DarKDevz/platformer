@@ -127,6 +127,11 @@ function setup() {
     lastScene = activeLevel;
     cameraPos = createVector(0, 0);
 }
+let oldremove = removeObject;
+removeObject = function() {
+    selectedObjects = [];
+    return oldremove(...arguments);
+}
 
 function removeMapObject() {
     for (let selectedId in selectedObjects) {

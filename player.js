@@ -11,7 +11,7 @@ class Player {
         this.colliding = false;
         this.collidedId = null;
         this.groundedId = null;
-        this.shootingDelay = 1000; // Delay between shots in milliseconds
+        this.shootingDelay = 300; // Delay between shots in milliseconds
         this.lastShotTime = 0; // Time of the last shot in milliseconds
     }
     display() {
