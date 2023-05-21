@@ -14,7 +14,7 @@ class Bullet extends GameObject {
         if (obj.isShootable) {
             obj.health--;
         }
-        removeObject(levels[activeLevel].boxes.indexOf(this));
+        removeObject(getCurrentBoxes().indexOf(this));
     }
     collision(obj) {
         var oX, oY, oW, oH;
@@ -68,10 +68,10 @@ class Bullet extends GameObject {
         const expiryTime = this.startDate + 5000; // 5 seconds expiry time
 
         if (Date.now() >= expiryTime) {
-            removeObject(levels[activeLevel].boxes.indexOf(this))
+            removeObject(getCurrentBoxes().indexOf(this))
         }
         let t_box_id;
-        for (t_box_id of levels[activeLevel].boxes) {
+        for (t_box_id of getCurrentBoxes()) {
             if (t_box_id && t_box_id.isCollidable) {
                 let c = this.collision(t_box_id);
                 if (c) {

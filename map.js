@@ -6,37 +6,39 @@ var classes = {
     Enemy: Enemy,
     Interact: Interactive
 }
-var makingNew = false;
-var newBox;
-var pasted = false;
-var copiedObjs = [];
-var cameraPos;
-var lastWasPressed = false;
-var overUI = false;
-var Pressed = lastWasPressed;
-var button;
-var selectBox = [];
-var Playing;
-var Paused;
-var pauseButton;
-var addButton;
-var selectObject;
-var selectedObjects = [];
-var lastScene;
-var inputFile;
-var saveButton;
-var copyButton;
-var removeButton;
-var actionButtons;
-var sideMenu;
-var boxInfo;
-var info = [];
-var LastInfo = [];
-var infoDivs = [];
-var infoDivsHolder = [];
-var infoIndexes = [];
-var addSelect;
-var id;
+var makingNew = false,
+    newBox = null,
+    pasted = false,
+    copiedObjs = [],
+    cameraPos = null,
+    lastWasPressed = false,
+    overUI = false,
+    Pressed = lastWasPressed,
+    button = null,
+    selectBox = [],
+    Playing = null,
+    Paused = null,
+    pauseButton = null,
+    addButton = null,
+    selectObject = null,
+    selectedObjects = [],
+    lastScene = null,
+    inputFile = null,
+    saveButton = null,
+    copyButton = null,
+    removeButton = null,
+    levelButton = null,
+    levelMode = false,
+    actionButtons = null,
+    sideMenu = null,
+    boxInfo = null,
+    info = [],
+    LastInfo = [],
+    infoDivs = [],
+    infoDivsHolder = [],
+    infoIndexes = [],
+    addSelect = null,
+    id = null;
 
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
@@ -111,11 +113,14 @@ function setup() {
     copyButton.mousePressed(copyObject);
     copyButton.parent('actionMenu');
     uiElement(copyButton);
-
     removeButton = createButton('Remove');
     removeButton.mousePressed(removeMapObject);
     removeButton.parent('actionMenu');
     uiElement(removeButton);
+    levelButton = createButton('Level');
+    levelButton.mousePressed(levelScreen);
+    levelButton.parent('actionMenu');
+    uiElement(levelButton);
 
     JsonMap(MapData);
 
@@ -126,6 +131,26 @@ function setup() {
 
     lastScene = activeLevel;
     cameraPos = createVector(0, 0);
+}
+
+function levelScreen() {
+    levelMode = !levelMode;
+    selectedObjects = [];
+    for (let t_info of infoDivs) {
+        t_info.remove();
+    }
+    if (levelMode) {
+        let LValues = levels[activeLevel].getLevelValues();
+        let LValueNames = levels[activeLevel].getLevelValueNames();
+        let LValueIndx = levels[activeLevel].getActualLevelValues();
+        for (let i = 0; i < LValues.length; i += 1) {
+            addMenuInput(LValueNames[i], (val) => {
+                let actValue = parseInt(val) ? parseInt(val) : val.replace('"', '').replace('\"', '')
+                levels[activeLevel][LValueIndx[i]] = actValue;
+                LValues[i] = actValue;
+            }, LValues[i])
+        }
+    }
 }
 let oldremove = removeObject;
 removeObject = function(id) {
@@ -157,7 +182,7 @@ function removeMapObject() {
         delete selectedObjects[selectedId];
     }
     //filter empty
-    levels[activeLevel].boxes = levels[activeLevel].boxes.filter((_) => {
+    levels[activeLevel].boxes = getCurrentBoxes().filter((_) => {
         return _
     })
     levels[activeLevel].reloadBoxes();
@@ -218,6 +243,7 @@ function draw() {
     else translate(cameraPos.x, cameraPos.y)
     if (Playing && !Paused) player.checkCollisions();
     levels[activeLevel].display();
+    if (levelMode) levels[activeLevel].customDraw();
     if (Playing) player.display();
     //Late Update
     if (!Paused) levels[activeLevel].lateUpdate();
@@ -331,12 +357,40 @@ function OpenEditMenu() {
     console.table(info);
     for (let i = 0; i < info.length; i += 4) {
         console.log(info[i]);
-        addMenuInput(info[i + 1], (val) => {
-            let actValue = parseInt(val) ? parseInt(val) : val.replace('"', '').replace('\"', '')
-            boxes[info[i]][info[i + 3]] = actValue;
-            info[i + 2] = actValue;
-        }, info[i + 2])
+        if (info[i + 1] === "callback") {
+            addEditableScript(info[i + 1], (val) => {
+                let actValue = parseInt(val) ? parseInt(val) : val.replace('"', '').replace('\"', '')
+                boxes[info[i]][info[i + 3]] = actValue;
+                info[i + 2] = actValue;
+                return actValue;
+            }, info[i + 2])
+        } else {
+            addMenuInput(info[i + 1], (val) => {
+                let actValue = parseInt(val) ? parseInt(val) : val.replace('"', '').replace('\"', '')
+                boxes[info[i]][info[i + 3]] = actValue;
+                info[i + 2] = actValue;
+            }, info[i + 2])
+        }
     }
+}
+
+function addEditableScript(name, set, get) {
+    let divHolder = createDiv();
+    let _get = get;
+    divHolder.html();
+    let _span = createSpan(name + ": ").parent(divHolder);
+    let inp = createButton("Script").parent(divHolder);
+    inp.mousePressed(() => {
+        var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get.toString().replace('"', '').replace('\"', '')), "Popup Window", 'width=400,height=300');
+        // Receive updated text from the popup window
+        window.receivePopupText = (text) => {
+            console.log(text);
+            _get = set(text);
+        };
+    })
+    inp.size(177, 21)
+    infoDivs.push(divHolder);
+    infoDivs[infoDivs.length - 1].parent('sideMenu')
 }
 
 function addMenuInput(name, set, get) {

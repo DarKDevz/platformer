@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Main Window</title>
+</head>
+
+<body>
+
+    <button onclick="openPopup()">Open Popup</button>
+    <p>Text from popup: <span id="popupText"></span></p>
+
+    <script>
+        function openPopup() {
+            var popupWindow = window.open('popup.html', 'PopupWindow', 'width=400,height=300');
+
+            // Receive updated text from the popup window
+            window.receivePopupText = function(text) {
+                document.getElementById('popupText').textContent = text;
+            };
+        }
+    </script>
+
+</body>
+
+</html>

@@ -35,3 +35,13 @@ if (!this.enemyMade) {
 }
 
 this.enemyMade = true;
+let LValues = levels[activeLevel].getLevelValues();
+let LValueNames = levels[activeLevel].getLevelValueNames();
+let LValueIndx = levels[activeLevel].getActualLevelValues();
+for (let i = 0; i < LValues.length; i += 1) {
+    addMenuInput(LValueNames[i], (val) => {
+        let actValue = parseInt(val) ? parseInt(val) : val.replace('"', '').replace('\"', '')
+        levels[activeLevel][LValueIndx[i]] = actValue;
+        LValues[i] = actValue;
+    }, LValues[i])
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Popup Window</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.13.5/beautify.min.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .CodeMirror {
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <textarea id="popupEditor"></textarea>
+
+    <script>
+        var editor = CodeMirror.fromTextArea(document.getElementById("popupEditor"), {
+            value: "",
+            mode: "javascript",
+            lineNumbers: true,
+            theme: "default",
+            autofocus: true
+        });
+
+        function receivePopupText() {
+            var text = decodeURIComponent(location.search.substring(1).split("=")[1]);
+            var beautifiedText = js_beautify(text, {
+                indent_size: 2
+            }); // Beautify the text
+            editor.setValue(beautifiedText);
+        }
+
+        function sendTextToMainWindow() {
+            var text = editor.getValue();
+            var beautifiedText = js_beautify(text, {
+                indent_size: 0, // Set indent size to 0
+                space_in_empty_paren: true, // Preserve space in empty parentheses
+                jslint_happy: true, // Use JSLint-compatible formatting
+                keep_array_indentation: false, // Remove array indentation
+                preserve_newlines: false // Remove new lines
+            });
+
+            window.opener.receivePopupText(beautifiedText);
+        }
+
+
+        document.addEventListener("keydown", function(event) {
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();
+                sendTextToMainWindow();
+            }
+        });
+
+        receivePopupText();
+    </script>
+</body>
+
+</html>
