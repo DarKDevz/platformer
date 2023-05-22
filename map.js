@@ -84,7 +84,7 @@ function setup() {
     uiElement(inputFile);
 
     addButton = uiButton('add New', 75, 0);
-    addButton.mousePressed(() => { makingNew = true; })
+    addButton.mousePressed(() => { makingNew = !makingNew; })
     addSelect = createSelect();
     addSelect.position(0, 0);
     Object.keys(classes).forEach(element => {
@@ -318,7 +318,6 @@ function releaseSelectBox() {
         levels[activeLevel].boxes.push(new classes[addSelect.value()](...classParameters));
         levels[activeLevel].reloadBoxes();
     }
-    makingNew = false;
 }
 
 function OpenEditMenu() {

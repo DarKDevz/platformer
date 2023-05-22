@@ -147,20 +147,22 @@ class Level {
         let all = "\"" + this.ind + "\":[";
         let jsonString;
         let usableBoxes = this.boxes.filter((box) => box.typeId !== undefined);
-        for (let t_box of usableBoxes) {
-            jsonString = "[";
-            jsonString += t_box.typeId + ",";
-            for (let t_arg_id in t_box.getValues()) {
-                let t_arg = t_box.getValues()[t_arg_id];
-                if (t_arg_id != t_box.getValues().length - 1) {
-                    jsonString += t_arg + ",";
-                } else {
-                    jsonString += t_arg + "],";
+        if (usableBoxes) {
+            for (let t_box of usableBoxes) {
+                jsonString = "[";
+                jsonString += t_box.typeId + ",";
+                for (let t_arg_id in t_box.getValues()) {
+                    let t_arg = t_box.getValues()[t_arg_id];
+                    if (t_arg_id != t_box.getValues().length - 1) {
+                        jsonString += t_arg + ",";
+                    } else {
+                        jsonString += t_arg + "],";
+                    }
                 }
+                all += jsonString;
             }
-            all += jsonString;
+            all = all.substring(0, all.length - 1);
         }
-        all = all.substring(0, all.length - 1);
         all += "]"
         return all;
     }

@@ -50,8 +50,7 @@
                 jslint_happy: true, // Use JSLint-compatible formatting
                 keep_array_indentation: false, // Remove array indentation
                 preserve_newlines: false // Remove new lines
-            });
-
+            }).replace(/\r?\n|\r/g, ''); // Remove new lines
             window.opener.receivePopupText(beautifiedText);
         }
 
