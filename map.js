@@ -145,7 +145,7 @@ function levelScreen() {
         let LValueIndx = levels[activeLevel].getActualLevelValues();
         for (let i = 0; i < LValues.length; i += 1) {
             addMenuInput(LValueNames[i], (val) => {
-                let actValue = parseInt(val) ? parseInt(val) : val.replace('"', '').replace('\"', '')
+                let actValue = parseInt(val) ? parseInt(val) : val
                 levels[activeLevel][LValueIndx[i]] = actValue;
                 LValues[i] = actValue;
             }, LValues[i])
@@ -344,7 +344,7 @@ function OpenEditMenu() {
         for (let t_info of infoDivs) {
             //Hacky solution to fix updating dom every time
             if (infoI < info.length)
-                t_info.child()[1].value = info[infoI + 2].toString().replace('"', '').replace('\"', '');
+                t_info.child()[1].value = info[infoI + 2].toString();
             infoI += 4;
         }
         return;
@@ -358,14 +358,14 @@ function OpenEditMenu() {
         console.log(info[i]);
         if (info[i + 1] === "callback") {
             addEditableScript(info[i + 1], (val) => {
-                let actValue = parseInt(val) ? parseInt(val) : val.replace('"', '').replace('\"', '')
+                let actValue = parseInt(val) ? parseInt(val) : val
                 boxes[info[i]][info[i + 3]] = actValue;
                 info[i + 2] = actValue;
                 return actValue;
             }, info[i + 2])
         } else {
             addMenuInput(info[i + 1], (val) => {
-                let actValue = parseInt(val) ? parseInt(val) : val.replace('"', '').replace('\"', '')
+                let actValue = parseInt(val) ? parseInt(val) : val
                 boxes[info[i]][info[i + 3]] = actValue;
                 info[i + 2] = actValue;
             }, info[i + 2])
@@ -380,7 +380,7 @@ function addEditableScript(name, set, get) {
     let _span = createSpan(name + ": ").parent(divHolder);
     let inp = createButton("Script").parent(divHolder);
     inp.mousePressed(() => {
-        var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get.toString().replace('"', '').replace('\"', '')), "Popup Window", 'width=400,height=300');
+        var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get.toString()), "Popup Window", 'width=400,height=300');
         // Receive updated text from the popup window
         window.receivePopupText = (text) => {
             console.log(text);
@@ -396,7 +396,7 @@ function addMenuInput(name, set, get) {
     let divHolder = createDiv();
     divHolder.html();
     let _span = createSpan(name + ": ").parent(divHolder);
-    let inp = createInput(get.toString().replace('"', '').replace('\"', '')).style("opacity:0.5;")
+    let inp = createInput(get.toString()).style("opacity:0.5;")
     inp.parent(divHolder).input(() => {
         set(inp.value());
     });

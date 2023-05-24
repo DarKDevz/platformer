@@ -132,55 +132,26 @@ class Level {
         boxes = this.boxes;
     }
     extrasJson() {
-        let all = "\"" + this.ind + "l\":[";
-        let jsonString;
-        for (let extras of this.getLevelValues()) {
-            jsonString = "";
-            jsonString += extras + ",";
-            all += jsonString;
-        }
-        all = all.substring(0, all.length - 1);
-        all += "]"
-        return all;
+        return this.getLevelValues();
     }
     toJSON() {
-        let all = "\"" + this.ind + "\":[";
-        let jsonString;
-        let usableBoxes = this.boxes.filter((box) => box.typeId !== undefined);
-        if (usableBoxes) {
-            for (let t_box of usableBoxes) {
-                jsonString = "[";
-                jsonString += t_box.typeId + ",";
-                for (let t_arg_id in t_box.getValues()) {
-                    let t_arg = t_box.getValues()[t_arg_id];
-                    if (t_arg_id != t_box.getValues().length - 1) {
-                        jsonString += t_arg + ",";
-                    } else {
-                        jsonString += t_arg + "],";
-                    }
-                }
-                all += jsonString;
-            }
-            all = all.substring(0, all.length - 1);
-        }
-        all += "]"
-        return all;
+        const usableBoxes = this.boxes.filter((box) => box.typeId !== undefined);
+        const boxVals = usableBoxes.map((t_box) => [t_box.typeId, ...t_box.getValues()]);
+
+        return boxVals;
     }
 }
 
 function MapJson() {
-    let mapData = "MapData={data:`{";
+    let mapData = {};
+    mapData = {};
     for (let level of levels) {
-        mapData += level.toJSON();
-        mapData += ","
+        mapData[level.ind] = level.toJSON()
     }
     for (let level of levels) {
-        mapData += level.extrasJson();
-        mapData += ",";
+        mapData[level.ind + "l"] = level.extrasJson()
     }
-    mapData = mapData.substring(0, mapData.length - 1);
-    mapData += "}`}"
-    return mapData;
+    return "MapData={data:`" + JSON.stringify(mapData) + "`}";
 }
 addLevel = function(arr, pos, maxPos = 500) {
     return levels.push(new Level(arr, pos, maxPos))

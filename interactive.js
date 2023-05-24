@@ -9,7 +9,7 @@ class Interactive extends GameObject {
         return [...super.getValuesName(), "callback", "radius"];
     }
     getValues() {
-        return [...super.getValues(), "\"" + this.callback + "\"", this.r]
+        return [...super.getValues(), this.callback, this.r]
     }
     getActualValuesName() {
         return [...super.getActualValuesName(), "callback", "r"]
