@@ -7,34 +7,21 @@ function getCurrentBoxes() {
 
 function removeObject(objId) {
     delete levels[activeLevel].boxes[objId];
-    //filter empty
-    levels[activeLevel].boxes = getCurrentBoxes().filter((_) => {
-        return _
-    })
+    levels[activeLevel].boxes = getCurrentBoxes().filter(Boolean);
     levels[activeLevel].reloadBoxes();
 }
 
 function addObj(ind, arr) {
-    switch (ind) {
-        case 0:
-            return (new Box(...arr));
-            break;
-        case 1:
-            return (new End(...arr));
-            break;
-        case 2:
-            return (new movingPlatform(...arr));
-            break;
-        case 3:
-            return (new Text(...arr))
-            break;
-        case 4:
-            return (new Enemy(...arr))
-            break;
-        case 5:
-            return (new Interactive(...arr))
-            break;
-    }
+    const objectMap = {
+        0: Box,
+        1: End,
+        2: movingPlatform,
+        3: Text,
+        4: Enemy,
+        5: Interactive
+    };
+
+    return new(objectMap[ind])(...arr);
 }
 
 function JsonMap(file) {
@@ -151,7 +138,7 @@ function MapJson() {
     for (let level of levels) {
         mapData[level.ind + "l"] = level.extrasJson()
     }
-    return "MapData={data:`" + JSON.stringify(mapData) + "`}";
+    return `MapData={data:${JSON.stringify(mapData)}}`;
 }
 addLevel = function(arr, pos, maxPos = 500) {
     return levels.push(new Level(arr, pos, maxPos))
