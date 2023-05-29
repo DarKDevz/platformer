@@ -16,9 +16,8 @@ function overrideLateUpdate() {
                 removeObject(levels[activeLevel].boxes.indexOf(this));
                 managerObject.enemyMade = false;
             }
-            _sprite.width = player.size.x;
-            _sprite.height = player.size.y;
-            image(_sprite, this.x, this.y);
+            managerObject.sprite.resize(player.size.x, player.size.y);
+            image(managerObject.sprite, this.x, this.y);
             super.lateUpdate();
         }
     }
@@ -31,10 +30,6 @@ function overrideLateUpdate() {
 }
 if (!this.enemyMade) {
     overrideLateUpdate();
-    let _img = JSON.parse(this.components[1].src);
-    console.log(_img);
-    var _sprite = loadImage("data:image/png;base64," + _img["imageb64"].toString());
-    _sprite.width = _img.width;
-    _sprite.height = _img.height;
+    this.components[1].reloadImage()
 }
 this.enemyMade = true;

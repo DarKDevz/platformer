@@ -31,6 +31,17 @@ class gameSprite extends Component {
             return actValue;
         }, this.src, parent)
     }
+    reloadImage() {
+        let _img = JSON.parse(this.src);
+        console.log(_img);
+        var _sprite = loadImage("data:image/png;base64," + _img["imageb64"].toString());
+        _sprite.width = _img.width;
+        _sprite.height = _img.height;
+        this.ownObject.sprite = _sprite;
+    }
+    getImage() {
+        return this.ownObject.sprite;
+    }
     toJson() {
         return { name: this.componentName, params: { src: this.src } };
     }
