@@ -52,17 +52,23 @@ function JsonMap(file) {
                 for (let BoxId in ObjwithComponents) {
                     let components = ObjwithComponents[BoxId];
                     console.log(components, BoxId);
+                    let _componentList = [];
                     for (let component of components) {
                         var level = levels[level_id.slice(0, -1)];
                         var box = level.boxes[BoxId];
                         var componentConstructor = componentList[component.name];
                         var paramObj = {}
                         paramObj.obj = box;
-                        paramObj.fn = component.params.fn
+                        for (let _param in component.params) {
+                            paramObj[_param] = component.params[_param]
+                        }
+                        //paramObj.fn = component.params.fn
                         var newComponent = new componentConstructor({...paramObj });
+                        _componentList.push(newComponent);
                         console.log(newComponent);
                     }
-
+                    var box = level.boxes[BoxId];
+                    box.components = _componentList;
                 }
             }
             console.log(newLevels[level_id]);

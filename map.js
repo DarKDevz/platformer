@@ -337,7 +337,7 @@ function OpenEditMenu() {
             for (componentId in t_box.components) {
                 let components = t_box.components[componentId];
                 info.push(objectId);
-                info.push("noMenu")
+                info.push("component")
                 info.push(componentId)
                 info.push(components.componentName);
             }
@@ -364,9 +364,13 @@ function OpenEditMenu() {
     console.table(info);
     for (let i = 0; i < info.length; i += 4) {
         console.log(info[i]);
-        if (info[i + 1] === "noMenu") {
+        if (info[i + 1] === "noMenu" || info[i + 1] === "component") {
             console.log("works");
             if (info[i + 1] === "noMenu") {
+                // if (boxes[info[i]].components[info[i + 2]]) {
+                //     boxes[info[i]].components[info[i + 2]].MenuEdit('sideMenu');
+                // }
+            } else {
                 if (boxes[info[i]].components[info[i + 2]]) {
                     boxes[info[i]].components[info[i + 2]].MenuEdit('sideMenu');
                 }
@@ -391,6 +395,25 @@ function addEditableScript(name, set, get, parentName = "sideMenu") {
         var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get.toString()), "Popup Window", 'width=400,height=300');
         // Receive updated text from the popup window
         window.receivePopupText = (text) => {
+            console.log(text);
+            _get = set(text);
+        };
+    })
+    inp.size(177, 21)
+    infoDivs.push(divHolder);
+    infoDivs[infoDivs.length - 1].parent(parentName)
+}
+
+function addEditableSprite(name, set, get, parentName = "sideMenu") {
+    let divHolder = createDiv();
+    let _get = get;
+    divHolder.html();
+    let _span = createSpan(name + ": ").parent(divHolder);
+    let inp = createButton("Script").parent(divHolder);
+    inp.mousePressed(() => {
+        let popup = window.open('imagePopup.html', '_blank', 'width=400,height=400');
+        // Receive updated text from the popup window
+        window.jsonImage = (text) => {
             console.log(text);
             _get = set(text);
         };

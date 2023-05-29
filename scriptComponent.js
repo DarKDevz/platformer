@@ -16,4 +16,24 @@ class gameScript extends Component {
         return { name: this.componentName, params: { fn: this.fn } };
     }
 }
+class gameSprite extends Component {
+    constructor({ obj, src }) {
+        super("gameSprite");
+        this.ownObject = obj;
+        this.src = src;
+    }
+    MenuEdit(parent) {
+        if (!addEditableSprite) return;
+        addEditableSprite("function", (val) => {
+            let actValue = val;
+            console.log(val);
+            this.src = actValue;
+            return actValue;
+        }, this.src, parent)
+    }
+    toJson() {
+        return { name: this.componentName, params: { src: this.src } };
+    }
+}
 addComponent("gameScript", gameScript);
+addComponent("gameSprite", gameSprite);
