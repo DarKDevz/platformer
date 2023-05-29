@@ -3,22 +3,28 @@ class Interactive extends GameObject {
         super(x, y, "interactive");
         this.r = radius;
         this.callback = callback;
+        this.components = [];
+        this.components.push(new gameScript({ obj: this, fn: callback }));
         this.typeId = 5;
     }
     getValuesName() {
-        return [...super.getValuesName(), "callback", "radius"];
+        return [...super.getValuesName(), "noMenu", "radius"];
     }
     getValues() {
-        return [...super.getValues(), this.callback, this.r]
+        return [...super.getValues(), 0, this.r]
     }
     getActualValuesName() {
-        return [...super.getActualValuesName(), "callback", "r"]
+        return [...super.getActualValuesName(), "components[0]", "r"]
     }
     getClassName() {
         return "Interactive"
     }
+    getComponents(id = "noId") {
+        if (id = "noId") return this.components;
+        return this.components[id];
+    }
     onCollide() {
-        eval(this.callback)
+        eval(this.components[0].fn)
     }
     collision(obj) {
         var oX, oY, oW, oH;

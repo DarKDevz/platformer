@@ -55,8 +55,7 @@ function saveMap() {
 }
 
 function loadMap(file) {
-    eval(file.data);
-    JsonMap(MapData);
+    JsonMap(file);
 }
 
 function uiButton(name, x, y) {
@@ -255,7 +254,7 @@ function draw() {
         rect(rect1.x, rect1.y, rect1.width, rect1.height);
     }
     /*------------------SelectBox Stuff---------------------*/
-    if (lastWasPressed != Pressed && mouseIsPressed && mouseButton === LEFT) {
+    if (!levelMode && lastWasPressed != Pressed && mouseIsPressed && mouseButton === LEFT) {
         selectBox.push([mouseCoords().x, mouseCoords().y]);
     }
     if (mouseIsPressed && mouseButton === CENTER) {
@@ -272,9 +271,9 @@ function draw() {
             cameraPos.y += diffY;
         }
     }
-    if (lastWasPressed != Pressed && !mouseIsPressed && !overUI) {
+    if (!levelMode && lastWasPressed != Pressed && !mouseIsPressed && !overUI) {
         releaseSelectBox();
-    } else if (selectBox[0] && mouseIsPressed && !selectBox[2] && !overUI) {
+    } else if (!levelMode && selectBox[0] && mouseIsPressed && !selectBox[2] && !overUI) {
         mouseUp();
     }
     //If switching scenes remove selected
@@ -334,6 +333,15 @@ function OpenEditMenu() {
             info.push(t_box.getValues()[t_val_id])
             info.push(t_box.getActualValuesName()[t_val_id])
         }
+        if (t_box.components) {
+            for (componentId in t_box.components) {
+                let components = t_box.components[componentId];
+                info.push(objectId);
+                info.push("noMenu")
+                info.push(componentId)
+                info.push(components.componentName);
+            }
+        }
     }
     if (info.equals(lastInfo)) {
         return;
@@ -356,13 +364,13 @@ function OpenEditMenu() {
     console.table(info);
     for (let i = 0; i < info.length; i += 4) {
         console.log(info[i]);
-        if (info[i + 1] === "callback") {
-            addEditableScript(info[i + 1], (val) => {
-                let actValue = parseInt(val) ? parseInt(val) : val
-                boxes[info[i]][info[i + 3]] = actValue;
-                info[i + 2] = actValue;
-                return actValue;
-            }, info[i + 2])
+        if (info[i + 1] === "noMenu") {
+            console.log("works");
+            if (info[i + 1] === "noMenu") {
+                if (boxes[info[i]].components[info[i + 2]]) {
+                    boxes[info[i]].components[info[i + 2]].MenuEdit('sideMenu');
+                }
+            }
         } else {
             addMenuInput(info[i + 1], (val) => {
                 let actValue = parseInt(val) ? parseInt(val) : val
@@ -373,7 +381,7 @@ function OpenEditMenu() {
     }
 }
 
-function addEditableScript(name, set, get) {
+function addEditableScript(name, set, get, parentName = "sideMenu") {
     let divHolder = createDiv();
     let _get = get;
     divHolder.html();
@@ -389,7 +397,7 @@ function addEditableScript(name, set, get) {
     })
     inp.size(177, 21)
     infoDivs.push(divHolder);
-    infoDivs[infoDivs.length - 1].parent('sideMenu')
+    infoDivs[infoDivs.length - 1].parent(parentName)
 }
 
 function addMenuInput(name, set, get) {

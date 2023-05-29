@@ -31,7 +31,7 @@ function JsonMap(file) {
     var newLevels = JSON.parse(file.data)
     for (let level_id in newLevels) {
         console.log(level_id);
-        if (!level_id.includes("l")) {
+        if (!level_id.includes("l") && !level_id.includes('c')) {
             let newLevel = newLevels[level_id];
             let t_boxes = [];
             for (let object of newLevel) {
@@ -42,10 +42,30 @@ function JsonMap(file) {
             if (!newLevels[level_id + "l"]) {
                 addLevel(t_boxes, createVector(400, -10));
             }
-        } else {
+        } else if (level_id.includes("l")) {
             let extras = newLevels[level_id];
             console.log(newLevels[level_id]);
             addLevel(t_levels[extras[0]], createVector(extras[1], extras[2]), extras[3]);
+        } else {
+            for (let ObjwithComponents of newLevels[level_id]) {
+                //console.log(_components);
+                for (let BoxId in ObjwithComponents) {
+                    let components = ObjwithComponents[BoxId];
+                    console.log(components, BoxId);
+                    for (let component of components) {
+                        var level = levels[level_id.slice(0, -1)];
+                        var box = level.boxes[BoxId];
+                        var componentConstructor = componentList[component.name];
+                        var paramObj = {}
+                        paramObj.obj = box;
+                        paramObj.fn = component.params.fn
+                        var newComponent = new componentConstructor({...paramObj });
+                        console.log(newComponent);
+                    }
+
+                }
+            }
+            console.log(newLevels[level_id]);
         }
     }
 
@@ -118,6 +138,21 @@ class Level {
     reloadBoxes() {
         boxes = this.boxes;
     }
+    componentsJson() {
+        const usableBoxes = this.boxes.filter((box) => box.components.length !== 0);
+        const boxVals = usableBoxes.map((t_box) => {
+            let _components = t_box.components;
+            console.log(this.boxes.indexOf(t_box))
+            let _newComponents = [];
+            for (let _component of _components) {
+                _newComponents.push(_component.toJson())
+            }
+            let finalObj = {};
+            finalObj[this.boxes.indexOf(t_box)] = _newComponents;
+            return finalObj;
+        });
+        return boxVals;
+    }
     extrasJson() {
         return this.getLevelValues();
     }
@@ -138,7 +173,10 @@ function MapJson() {
     for (let level of levels) {
         mapData[level.ind + "l"] = level.extrasJson()
     }
-    return `MapData={data:${JSON.stringify(mapData)}}`;
+    for (let level of levels) {
+        mapData[level.ind + "c"] = level.componentsJson()
+    }
+    return JSON.stringify(mapData);
 }
 addLevel = function(arr, pos, maxPos = 500) {
     return levels.push(new Level(arr, pos, maxPos))
