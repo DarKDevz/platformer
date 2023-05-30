@@ -20,7 +20,9 @@ class gameSprite extends Component {
     constructor({ obj, src }) {
         super("gameSprite");
         this.ownObject = obj;
+        console.log(src);
         this.src = src;
+        this.sprite;
     }
     MenuEdit(parent) {
         if (!addEditableSprite) return;
@@ -31,13 +33,17 @@ class gameSprite extends Component {
             return actValue;
         }, this.src, parent)
     }
+    getSprite() {
+        return this.sprite.get(...arguments)
+    }
     reloadImage() {
-        let _img = JSON.parse(this.src);
+        let _img = this.src;
         console.log(_img);
         var _sprite = loadImage("data:image/png;base64," + _img["imageb64"].toString());
         _sprite.width = _img.width;
         _sprite.height = _img.height;
         this.ownObject.sprite = _sprite;
+        this.sprite = _sprite;
     }
     getImage() {
         return this.ownObject.sprite;

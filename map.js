@@ -387,29 +387,86 @@ function OpenEditMenu() {
 
 function addEditableScript(name, set, get, parentName = "sideMenu") {
     let divHolder = createDiv();
+    let headerText = createSpan("►Script Component").parent(divHolder);
+    let isExpanded = false;
     let _get = get;
-    divHolder.html();
-    let _span = createSpan(name + ": ").parent(divHolder);
-    let inp = createButton("Script").parent(divHolder);
+    divHolder.class("accordion-header");
+
+    let inputField = createDiv();
+    inputField.class("accordion-content");
+    inputField.hide();
+
+    let _span = createSpan(name + ": ").parent(inputField);
+    _span.style('margin-left', '1em'); // Add a tab space using CSS margin-left
+
+    let inp = createButton("Script").parent(inputField);
     inp.mousePressed(() => {
-        var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get.toString()), "Popup Window", 'width=400,height=300');
+        var popupWindow = window.open(
+            "popup.html?text=" + encodeURIComponent(_get.toString()),
+            "Popup Window",
+            "width=400,height=300"
+        );
         // Receive updated text from the popup window
         window.receivePopupText = (text) => {
             console.log(text);
             _get = set(text);
         };
-    })
-    inp.size(177, 21)
+    });
+    inp.size(177, 21);
+
+    divHolder.mousePressed(() => {
+        isExpanded = !isExpanded;
+        if (isExpanded) {
+            headerText.html("▼Script Component");
+            inputField.show();
+            inputField.style("max-height", inputField.elt.scrollHeight + "px");
+        } else {
+            headerText.html("►Script Component");
+            inputField.style("max-height", "0px");
+            setTimeout(() => {
+                inputField.hide();
+            }, 200); // Adjust the timeout value to match the CSS transition duration
+        }
+    });
+
     infoDivs.push(divHolder);
-    infoDivs[infoDivs.length - 1].parent(parentName)
+    infoDivs[infoDivs.length - 1].parent(parentName);
+    inputField.parent(divHolder);
 }
+
 
 function addEditableSprite(name, set, get, parentName = "sideMenu") {
     let divHolder = createDiv();
+    let headerText = createSpan("►Sprite Component").parent(divHolder);
     let _get = get;
-    divHolder.html();
-    let _span = createSpan(name + ": ").parent(divHolder);
-    let inp = createButton("Script").parent(divHolder);
+    let isExpanded = false;
+
+    divHolder.class("accordion-header");
+
+    let inputField = createDiv();
+    inputField.class("accordion-content");
+    inputField.hide();
+
+    let _span = createSpan(name + ": ").parent(inputField);
+    _span.style('margin-left', '1em'); // Add a tab space using CSS margin-left
+
+    let inp = createButton("Sprite").parent(inputField);
+
+    headerText.mousePressed(() => {
+        isExpanded = !isExpanded;
+        if (isExpanded) {
+            headerText.html("▼Sprite Component");
+            inputField.show();
+            inputField.style("max-height", inputField.elt.scrollHeight + "px");
+        } else {
+            headerText.html("►Sprite Component");
+            inputField.style("max-height", "0px");
+            setTimeout(() => {
+                inputField.hide();
+            }, 200); // Adjust the timeout value to match the CSS transition duration
+        }
+    });
+
     inp.mousePressed(() => {
         let popup = window.open('imagePopup.html', '_blank', 'width=400,height=400');
         // Receive updated text from the popup window
@@ -417,11 +474,16 @@ function addEditableSprite(name, set, get, parentName = "sideMenu") {
             console.log(text);
             _get = set(text);
         };
-    })
-    inp.size(177, 21)
-    infoDivs.push(divHolder);
-    infoDivs[infoDivs.length - 1].parent(parentName)
+    });
+
+    inp.size(177, 21);
+    let infoId = infoDivs.push(divHolder);
+    infoDivs[infoId - 1].parent(parentName);
+    inputField.parent(divHolder);
 }
+
+
+
 
 function addMenuInput(name, set, get) {
     let divHolder = createDiv();
