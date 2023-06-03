@@ -344,15 +344,19 @@ function OpenEditMenu() {
             }
         }
     }
+    if((lastInfo.length!==info.length))console.log(lastInfo.length-info.length,lastIndexes.length-infoIndexes.length);
     if (info.equals(lastInfo)) {
         return;
     }
-    if (lastIndexes.equals(infoIndexes)) {
+    let newInfo = lastInfo.length!==info.length
+    let noNewObjects = lastIndexes.equals(infoIndexes)
+    if (!newInfo&&noNewObjects) {
         //edit existing values
         for (let t_info of infoDivs) {
-            //Fixed The Values not Updating using a custom Event
             t_info.elt.dispatchEvent(valChanged);
             //Hacky solution to fix updating dom every time
+            /*if (infoI < info.length)
+                t_info.child()[1].value = info[infoI + 2].toString();*/
         }
         return;
     }
