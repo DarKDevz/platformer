@@ -7,6 +7,7 @@ var classes = {
     Interact: Interactive
 }
 var makingNew = false,
+    valChanged = new Event("ValueChanged"),
     newBox = null,
     pasted = false,
     copiedObjs = [],
@@ -147,7 +148,7 @@ function levelScreen() {
                 let actValue = parseInt(val) ? parseInt(val) : val
                 levels[activeLevel][LValueIndx[i]] = actValue;
                 LValues[i] = actValue;
-            }, LValues[i])
+            }, () => LValues[i])
         }
     }
 }
@@ -348,12 +349,10 @@ function OpenEditMenu() {
     }
     if (lastIndexes.equals(infoIndexes)) {
         //edit existing values
-        let infoI = 0;
         for (let t_info of infoDivs) {
+            //Fixed The Values not Updating using a custom Event
+            t_info.elt.dispatchEvent(valChanged);
             //Hacky solution to fix updating dom every time
-            if (infoI < info.length)
-                t_info.child()[1].value = info[infoI + 2].toString();
-            infoI += 4;
         }
         return;
     }
@@ -380,7 +379,7 @@ function OpenEditMenu() {
                 let actValue = parseInt(val) ? parseInt(val) : val
                 boxes[info[i]][info[i + 3]] = actValue;
                 info[i + 2] = actValue;
-            }, info[i + 2])
+            }, () => info[i + 2])
         }
     }
 }
@@ -489,10 +488,13 @@ function addMenuInput(name, set, get) {
     let divHolder = createDiv();
     divHolder.html();
     let _span = createSpan(name + ": ").parent(divHolder);
-    let inp = createInput(get.toString()).style("opacity:0.5;")
+    let inp = createInput(get().toString()).style("opacity:0.5;")
     inp.parent(divHolder).input(() => {
         set(inp.value());
     });
+        divHolder.elt.addEventListener("ValueChanged",
+                                   ()=>{inp.value(get())}
+                                  );
     infoDivs.push(divHolder);
     infoDivs[infoDivs.length - 1].parent('sideMenu')
 }
