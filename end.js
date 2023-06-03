@@ -15,8 +15,11 @@ class End extends Box{
 	}
 	earlyUpdate() {
 		if(this.collision(player))  {
-		if(levels[activeLevel + 1] !== undefined)levels[activeLevel + 1].loadLevel();
-		else{addLevel([],createVector(0,-500))}
+		if(levels[activeLevel + 1] !== undefined)
+			levels[activeLevel + 1].loadLevel();
+		else{
+			addLevel([],createVector(0,-500)).loadLevel();
+		}
 		}
 	}
 }
