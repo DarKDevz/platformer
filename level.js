@@ -184,6 +184,8 @@ function MapJson() {
     }
     return JSON.stringify(mapData);
 }
-addLevel = function(arr, pos, maxPos = 500) {
-    return levels.push(new Level(arr, pos, maxPos))
+function addLevel(arr, pos, maxPos = 500) {
+    let _level = new Level(arr,pos,maxPos);
+    levels.push(_level)
+    return _level;
 }
