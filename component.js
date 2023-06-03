@@ -1,4 +1,4 @@
-var componentList = [];
+var componentList = {};
 class Component {
     constructor(name) {
         this.componentName = name;
