@@ -1,5 +1,5 @@
 class gameScript extends Component {
-    constructor({ obj, fn }) {
+    constructor({ obj={}, fn=''}) {
         super("gameScript");
         this.ownObject = obj;
         this.fn = fn;
@@ -17,7 +17,7 @@ class gameScript extends Component {
     }
 }
 class gameSprite extends Component {
-    constructor({ obj, src }) {
+    constructor({obj={}, src=''}) {
         super("gameSprite");
         this.ownObject = obj;
         console.log(src);
