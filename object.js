@@ -7,9 +7,34 @@ class GameObject {
         this.isCollidable = false;
         this.tag = tag;
         this.components = [];
+        this.overrides = {};
+        this.savedFuncs = {};
     }
     getClassName() {
         return "GameObject"
+    }
+    set script(source) {
+        (new Function(source)).call(this.overrides);
+        for (let i in this.overrides) {
+            console.log(i);
+            //check if the overriden value even exists and if we want to replace with a function
+            if (this[i] !== undefined && typeof this.overrides[i] === "function") {
+                if (this.savedFuncs[i] === undefined) {
+                    this.savedFuncs[i] = this[i];
+                }
+                this[i] = function() {
+                    this.overrides[i].call(this, ...arguments);
+                    this.savedFuncs[i].call(this, ...arguments);
+                }
+                console.log(this.overrides[i]);
+            } else {
+                this[i] = this[this.overrides];
+            }
+        }
+        console.log(this.overrides);
+    }
+    get script() {
+        throw new Error("You shouldn't get it from here")
     }
     offSet(x, y) {
         this.x = x;

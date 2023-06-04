@@ -1,8 +1,17 @@
 class gameScript extends Component {
-    constructor({ obj={}, fn=''}) {
+    constructor({ obj = {}, fn = '' }) {
         super("gameScript");
         this.ownObject = obj;
         this.fn = fn;
+    }
+    set fn(value) {
+        console.log("changed");
+        //Updated script, update the object's script so it calls function
+        if (window['enabled'] !== undefined) this.ownObject.script = value;
+        return this._src = value;
+    }
+    get fn() {
+        return this._src
     }
     MenuEdit(parent) {
         if (!addEditableScript) return;
@@ -17,12 +26,20 @@ class gameScript extends Component {
     }
 }
 class gameSprite extends Component {
-    constructor({obj={}, src=''}) {
+    constructor({ obj = {}, src = '' }) {
         super("gameSprite");
         this.ownObject = obj;
         console.log(src);
+        this._src = src;
         this.src = src;
         this.sprite;
+    }
+    set src(value) {
+        console.log("changed");
+        return this._src = value;
+    }
+    get src() {
+        return this._src
     }
     MenuEdit(parent) {
         if (!addEditableSprite) return;
