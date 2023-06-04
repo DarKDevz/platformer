@@ -20,7 +20,7 @@ class Interactive extends GameObject {
         return "Interactive"
     }
     getComponents(id = "noId") {
-        if (id = "noId") return this.components;
+        if (id === "noId") return this.components;
         return this.components[id];
     }
     onCollide() {
