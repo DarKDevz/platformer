@@ -6,40 +6,41 @@ var classes = {
     Enemy: Enemy,
     Interact: Interactive
 };
-var makingNew = false
-  , valChanged = new Event("ValueChanged")
-  , newBox = null
-  , pasted = false
-  , copiedObjs = []
-  , cameraPos = null
-  , lastWasPressed = false
-  , overUI = false
-  , Pressed = lastWasPressed
-  , button = null
-  , selectBox = []
-  , Playing = null
-  , Paused = null
-  , pauseButton = null
-  , addButton = null
-  , selectObject = null
-  , selectedObjects = []
-  , lastScene = null
-  , inputFile = null
-  , saveButton = null
-  , copyButton = null
-  , removeButton = null
-  , levelButton = null
-  , levelMode = false
-  , actionButtons = null
-  , sideMenu = null
-  , boxInfo = null
-  , info = []
-  , LastInfo = []
-  , infoDivs = []
-  , infoDivsHolder = []
-  , infoIndexes = []
-  , addSelect = null
-  , id = null;
+var makingNew = false,
+    valChanged = new Event("ValueChanged"),
+    newBox = null,
+    pasted = false,
+    copiedObjs = [],
+    cameraPos = null,
+    lastWasPressed = false,
+    overUI = false,
+    Pressed = lastWasPressed,
+    button = null,
+    selectBox = [],
+    Playing = null,
+    Paused = null,
+    pauseButton = null,
+    addButton = null,
+    selectObject = null,
+    selectedObjects = [],
+    lastScene = null,
+    inputFile = null,
+    visibleInputFile = null,
+    saveButton = null,
+    copyButton = null,
+    removeButton = null,
+    levelButton = null,
+    levelMode = false,
+    actionButtons = null,
+    sideMenu = null,
+    boxInfo = null,
+    info = [],
+    LastInfo = [],
+    infoDivs = [],
+    infoDivsHolder = [],
+    infoIndexes = [],
+    addSelect = null,
+    id = null;
 
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
@@ -67,8 +68,8 @@ function uiButton(name, x, y) {
 }
 
 function uiElement(element) {
-    element.mouseOver(()=>overUI = true);
-    element.mouseOut(()=>overUI = false);
+    element.mouseOver(() => overUI = true);
+    element.mouseOut(() => overUI = false);
 }
 
 function setup() {
@@ -79,30 +80,30 @@ function setup() {
     uiElement(button);
 
     inputFile = createFileInput(loadMap);
-    inputFile.position(145, 0);
-    inputFile.style("color: transparent");
-    uiElement(inputFile);
+    inputFile.style("display: none");
+    visibleInputFile = uiButton("load File", 145, 0)
+    visibleInputFile.mouseClicked((e) => {
+        inputFile.elt.click(e)
+    })
+    uiElement(visibleInputFile);
 
     addButton = uiButton('add New', 75, 0);
-    addButton.mousePressed(()=>{
+    addButton.mousePressed(() => {
         makingNew = !makingNew;
-    }
-    )
+    })
     addSelect = createSelect();
     addSelect.position(0, 0);
-    Object.keys(classes).forEach(element=>{
+    Object.keys(classes).forEach(element => {
         addSelect.option(element)
-    }
-    );
-    saveButton = uiButton("Save", 220, 0);
+    });
+    saveButton = uiButton("Save", 212, 0);
     saveButton.mousePressed(saveMap);
     uiElement(saveButton);
 
     pauseButton = uiButton('Paused', windowWidth / 2, 0);
-    pauseButton.mousePressed(()=>{
+    pauseButton.mousePressed(() => {
         Paused = !Paused
-    }
-    );
+    });
     sideMenu = createDiv();
     sideMenu.size(300);
     sideMenu.style("max-height:calc(100vh - 20px);overflow:auto;height:fit-content;background-color: rgba(0, 0, 0, 0.25);");
@@ -131,11 +132,10 @@ function setup() {
 
     JsonMap(MapData);
 
-    button.mousePressed(()=>{
+    button.mousePressed(() => {
         levels[activeLevel].loadLevel();
         Playing = !Playing;
-    }
-    );
+    });
 
     lastScene = activeLevel;
     cameraPos = createVector(0, 0);
@@ -152,12 +152,11 @@ function levelScreen() {
         let LValueNames = levels[activeLevel].getLevelValueNames();
         let LValueIndx = levels[activeLevel].getActualLevelValues();
         for (let i = 0; i < LValues.length; i += 1) {
-            addMenuInput(LValueNames[i], (val)=>{
+            addMenuInput(LValueNames[i], (val) => {
                 let actValue = parseInt(val) ? parseInt(val) : val
                 levels[activeLevel][LValueIndx[i]] = actValue;
                 LValues[i] = actValue;
-            }
-            , ()=>LValues[i])
+            }, () => LValues[i])
         }
     }
 }
@@ -194,15 +193,13 @@ function removeMapObject() {
         delete selectedObjects[selectedId];
     }
     //filter empty
-    levels[activeLevel].boxes = getCurrentBoxes().filter((_)=>{
+    levels[activeLevel].boxes = getCurrentBoxes().filter((_) => {
         return _
-    }
-    )
+    })
     levels[activeLevel].reloadBoxes();
-    selectedObjects = selectedObjects.filter((_)=>{
+    selectedObjects = selectedObjects.filter((_) => {
         return _
-    }
-    )
+    })
 }
 
 function copyObject() {
@@ -273,7 +270,7 @@ function draw() {
     /*-------------PLAYER AND LEVEL DRAWING-----------------*/
     //DRAW SELECT BOX
     if (selectBox[1]) {
-        let rect1 = new Box(selectBox[0][0],selectBox[0][1],selectBox[1][0] - selectBox[0][0],selectBox[1][1] - selectBox[0][1]);
+        let rect1 = new Box(selectBox[0][0], selectBox[0][1], selectBox[1][0] - selectBox[0][0], selectBox[1][1] - selectBox[0][1]);
         fill(0, 0, 0, 25);
         rect(rect1.x, rect1.y, rect1.width, rect1.height);
     }
@@ -397,9 +394,9 @@ function OpenEditMenu() {
         console.log(info[i]);
         if (info[i + 1] === "noMenu" || info[i + 1] === "component" || info[i + 1] === "CustomButton") {
             console.log("works");
-            if (info[i + 1] === "noMenu") {// if (boxes[info[i]].components[info[i + 2]]) {
-            //     boxes[info[i]].components[info[i + 2]].MenuEdit('sideMenu');
-            // }
+            if (info[i + 1] === "noMenu") { // if (boxes[info[i]].components[info[i + 2]]) {
+                //     boxes[info[i]].components[info[i + 2]].MenuEdit('sideMenu');
+                // }
             } else if (info[i + 1] === "component") {
                 if (boxes[info[i]].components[info[i + 2]]) {
                     boxes[info[i]].components[info[i + 2]].MenuEdit('sideMenu');
@@ -407,33 +404,31 @@ function OpenEditMenu() {
             } else {
                 let divHolder = createDiv();
                 let ComponentSelect = createSelect();
-                for (const [key,value] of Object.entries(componentList)) {
+                for (const [key, value] of Object.entries(componentList)) {
                     ComponentSelect.option(key);
                 }
                 ComponentSelect.parent(divHolder);
                 let addButton = createButton("Add");
-                addButton.mousePressed(()=>{
+                addButton.mousePressed(() => {
                     boxes[info[i]].components.push(new componentList[ComponentSelect.value()]({
                         obj: boxes[info[i]]
                     }))
-                }
-                )
+                })
                 addButton.parent(divHolder)
                 divHolder.parent('sideMenu')
                 infoDivs.push(divHolder);
             }
         } else {
-            addMenuInput(info[i + 1], (val)=>{
+            addMenuInput(info[i + 1], (val) => {
                 let actValue = parseInt(val) ? parseInt(val) : val
                 boxes[info[i]][info[i + 3]] = actValue;
                 info[i + 2] = actValue;
-            }
-            , ()=>info[i + 2])
+            }, () => info[i + 2])
         }
     }
 }
 
-function addEditableScript(name, set, get, parentName="sideMenu") {
+function addEditableScript(name, set, get, parentName = "sideMenu") {
     let divHolder = createDiv();
     let headerText = createSpan("►Script Component").parent(divHolder);
     let isExpanded = false;
@@ -449,19 +444,17 @@ function addEditableScript(name, set, get, parentName="sideMenu") {
     // Add a tab space using CSS margin-left
 
     let inp = createButton("Script").parent(inputField);
-    inp.mousePressed(()=>{
+    inp.mousePressed(() => {
         var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get.toString()), "Popup Window", "width=400,height=300");
         // Receive updated text from the popup window
-        window.receivePopupText = (text)=>{
+        window.receivePopupText = (text) => {
             console.log(text);
             _get = set(text);
-        }
-        ;
-    }
-    );
+        };
+    });
     inp.size(177, 21);
 
-    divHolder.mousePressed(()=>{
+    divHolder.mousePressed(() => {
         isExpanded = !isExpanded;
         if (isExpanded) {
             headerText.html("▼Script Component");
@@ -470,21 +463,19 @@ function addEditableScript(name, set, get, parentName="sideMenu") {
         } else {
             headerText.html("►Script Component");
             inputField.style("max-height", "0px");
-            setTimeout(()=>{
+            setTimeout(() => {
                 inputField.hide();
-            }
-            , 200);
+            }, 200);
             // Adjust the timeout value to match the CSS transition duration
         }
-    }
-    );
+    });
 
     infoDivs.push(divHolder);
     infoDivs[infoDivs.length - 1].parent(parentName);
     inputField.parent(divHolder);
 }
 
-function addEditableSprite(name, set, get, parentName="sideMenu") {
+function addEditableSprite(name, set, get, parentName = "sideMenu") {
     let divHolder = createDiv();
     let headerText = createSpan("►Sprite Component").parent(divHolder);
     let _get = get;
@@ -502,7 +493,7 @@ function addEditableSprite(name, set, get, parentName="sideMenu") {
 
     let inp = createButton("Sprite").parent(inputField);
 
-    headerText.mousePressed(()=>{
+    headerText.mousePressed(() => {
         isExpanded = !isExpanded;
         if (isExpanded) {
             headerText.html("▼Sprite Component");
@@ -511,25 +502,21 @@ function addEditableSprite(name, set, get, parentName="sideMenu") {
         } else {
             headerText.html("►Sprite Component");
             inputField.style("max-height", "0px");
-            setTimeout(()=>{
+            setTimeout(() => {
                 inputField.hide();
-            }
-            , 200);
+            }, 200);
             // Adjust the timeout value to match the CSS transition duration
         }
-    }
-    );
+    });
 
-    inp.mousePressed(()=>{
+    inp.mousePressed(() => {
         let popup = window.open('imagePopup.html', '_blank', 'width=400,height=400');
         // Receive updated text from the popup window
-        window.jsonImage = (text)=>{
+        window.jsonImage = (text) => {
             console.log(text);
             _get = set(text);
-        }
-        ;
-    }
-    );
+        };
+    });
 
     inp.size(177, 21);
     let infoId = infoDivs.push(divHolder);
@@ -542,14 +529,12 @@ function addMenuInput(name, set, get) {
     divHolder.html();
     let _span = createSpan(name + ": ").parent(divHolder);
     let inp = createInput(get().toString()).style("opacity:0.5;")
-    inp.parent(divHolder).input(()=>{
+    inp.parent(divHolder).input(() => {
         set(inp.value());
-    }
-    );
-    divHolder.elt.addEventListener("ValueChanged", ()=>{
+    });
+    divHolder.elt.addEventListener("ValueChanged", () => {
         inp.value(get())
-    }
-    );
+    });
     infoDivs.push(divHolder);
     infoDivs[infoDivs.length - 1].parent('sideMenu')
 }
@@ -619,7 +604,7 @@ Array.prototype.equals = function(array) {
 
     for (var i = 0, l = this.length; i < l; i++) {
         // Check if we have nested arrays
-        if (this[i]instanceof Array && array[i]instanceof Array) {
+        if (this[i] instanceof Array && array[i] instanceof Array) {
             // recurse into the nested arrays
             if (!this[i].equals(array[i]))
                 return false;
