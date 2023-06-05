@@ -1,59 +1,108 @@
-class Object {
-    constructor() {
+class GameObject {
+    constructor(x, y, tag) {
+        this.x = x;
+        this.y = y;
+        this.width = 1;
+        this.height = 1;
+        this.isCollidable = false;
+        this.tag = tag;
+        this.components = [];
         this.overrides = {};
         this.savedFuncs = {};
+        this.newOverrides = {};
     }
-
-    onCollide(a, b, c) {
-        // Normal code
-        console.log(["Og", a, b, c, this]);
+    getClassName() {
+        return "GameObject"
     }
-
-    notAffected() {
-        // Normal code
-        console.log("Inside this.notAffected");
-    }
-
-    addOverrides(overridesObj) {
-        for (let i in overridesObj) {
-            console.log(i);
-            //check if the overriden value even exists and if we want to replace with a function
-            if (this[i] !== undefined && typeof overridesObj[i] === "function") {
-                if (this.savedFuncs[i] === undefined) {
-                    this.savedFuncs[i] = this[i];
-                }
-                this[i] = function() {
-                    overridesObj[i].call(this, ...arguments);
-                    this.savedFuncs[i].call(this, ...arguments);
-                }
-                console.log(overridesObj[i]);
+    set script(source) {
+        let whichComponent = this.components;
+        var scriptId = 0;
+        for(let componentId in this.components) {
+            let component = this.components[componentId];
+            console.log(component);
+            if(component._src && component._src === source) {
+                console.log("found it", componentId);
+                scriptId = componentId+1;
+                break;
             }
         }
+        console.log(scriptId);
+        (new Function(source)).call(this.newOverrides);
+        //this.savedFuncs[scriptId] = {}
+        this.overrides[scriptId] = this.newOverrides;
+        for (let i in this.overrides[scriptId]) {
+            console.log(i);
+            //check if the overriden value even exists and if we want to replace with a function
+            if (this[i] !== undefined && typeof this.overrides[i] === "function") {
+                if (this.savedFuncs[scriptId][i] === undefined) {
+                    this.savedFuncs[scriptId][i] = this[i];
+                }
+                this[i] = function() {
+                    this.overrides[scriptId][i].call(this, ...arguments);
+                    this.savedFuncs[scriptId][i].call(this, ...arguments);
+                }
+                console.log(this.overrides[i]);
+            } else {
+                this[i] = this[this.overrides];
+            }
+        }
+        console.log(this.overrides);
+    }
+    get script() {
+        throw new Error("You shouldn't get it from here")
+    }
+    offSet(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    getValues() {
+        return [this.x, this.y];
+    }
+    getValuesName() {
+        return ["x", "y"];
+    }
+    getActualValuesName() {
+        return ["x", "y"];
+    }
+    display() {
+
+    }
+    collision(obj, trigger = false) {
+        var oX, oY, oW, oH;
+        if (obj.pos !== undefined) {
+            oX = obj.pos.x;
+            oY = obj.pos.y;
+        } else {
+            oX = obj.x;
+            oY = obj.y;
+        }
+        if (obj.size !== undefined) {
+            oW = obj.size.x;
+            oH = obj.size.y;
+        } else {
+            oW = obj.width;
+            oH = obj.height;
+        }
+        let rect2 = {
+            x: oX,
+            y: oY,
+            width: oW,
+            height: oH,
+        }
+        let collides = collide(this, rect2);
+        if (collides && trigger) this.onCollide();
+        return collides;
+    }
+    update() {
+
+    }
+    earlyUpdate() {
+
+    }
+    lateUpdate() {
+
+    }
+    customDraw() {
+        point(this.x, this.y)
     }
 }
-
-// Example usage
-const obj = new Object();
-obj.onCollide(2, 3, 1); // Logs: Inside this.onCollide
-obj.notAffected(); // Logs: Inside this.notAffected
-
-obj.addOverrides({
-    onCollide: (a) => {
-        console.log("works", a);
-    }
-});
-
-obj.onCollide(1, 2, 3); // Logs: Inside this.onCollide, Value inside the overrides object: () => { alert("works"); }
-obj.notAffected(); // Logs: Inside this.notAffected
-
-obj.addOverrides({
-    onCollide: function() {
-        console.log("updated", arguments);
-    },
-    notAffected: function() {
-        alert("weird Change")
-    }
-});
-
-obj.onCollide(2, 3, 5); // Logs: Inside this.onCollide, Value inside the overrides object: () => { alert("updated"); }
-obj.notAffected(); // Logs: Inside this.notAffected
