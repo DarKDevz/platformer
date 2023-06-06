@@ -41,6 +41,14 @@ var makingNew = false,
     infoIndexes = [],
     addSelect = null,
     id = null;
+function touchStarted() {
+  if (touches.length === 1) {
+    if (typeof event !== 'undefined') {
+      event.preventDefault(); // Prevent default touch behavior
+    }
+    mousePressed(); // Call the mousePressed function
+  }
+}
 
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
