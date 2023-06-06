@@ -7,8 +7,9 @@ class gameScript extends Component {
     set fn(value) {
         console.log("changed");
         //Updated script, update the object's script so it calls function
-        if (window['enabled'] !== undefined) this.ownObject.script = value;
-        return this._src = value;
+        this._src = value;
+        this.ownObject.script = value;
+        return value;
     }
     get fn() {
         return this._src

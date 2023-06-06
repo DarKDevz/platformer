@@ -41,6 +41,7 @@ var makingNew = false,
     infoIndexes = [],
     addSelect = null,
     id = null;
+
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
     pauseButton.position(windowWidth / 2, 0);

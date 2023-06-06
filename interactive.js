@@ -24,7 +24,7 @@ class Interactive extends GameObject {
         return this.components[id];
     }
     onCollide() {
-        eval(this.components[0].fn)
+        //eval(this.components[0].fn)
     }
     collision(obj) {
         var oX, oY, oW, oH;

@@ -9,24 +9,43 @@ class GameObject {
         this.components = [];
         this.overrides = {};
         this.savedFuncs = {};
+        this.newOverrides = {};
     }
     getClassName() {
         return "GameObject"
     }
     set script(source) {
-        (new Function(source)).call(this.overrides);
-        for (let i in this.overrides) {
+        var scriptId = 0;
+        for (let componentId in this.components) {
+            let component = this.components[componentId];
+            console.log(component);
+            if (component._src && component._src === source) {
+                console.log("found it", componentId);
+                scriptId = componentId;
+            }
+        }
+        console.log(scriptId);
+        this.newOverrides = {};
+        (new Function(source)).call(this.newOverrides);
+        if (this.savedFuncs[scriptId] === undefined) this.savedFuncs[scriptId] = {}
+        this.overrides[scriptId] = this.newOverrides;
+        for (let i in this.overrides[scriptId]) {
             console.log(i);
             //check if the overriden value even exists and if we want to replace with a function
-            if (this[i] !== undefined && typeof this.overrides[i] === "function") {
-                if (this.savedFuncs[i] === undefined) {
-                    this.savedFuncs[i] = this[i];
+            if (this[i] !== undefined && typeof this.overrides[scriptId][i] === "function") {
+                if (this.savedFuncs[scriptId][i] === undefined) {
+                    this.savedFuncs[scriptId][i] = this[i];
                 }
                 this[i] = function() {
-                    this.overrides[i].call(this, ...arguments);
-                    this.savedFuncs[i].call(this, ...arguments);
+                    if (this.overrides[scriptId][i] !== undefined) {
+                        this.overrides[scriptId][i].bind(this)(...arguments);
+                    } else {
+                        //script has been deleted
+                        this[i] = this.savedFuncs[scriptId][i].bind(this)
+                    }
+                    this.savedFuncs[scriptId][i].call(this, ...arguments);
                 }
-                console.log(this.overrides[i]);
+                console.log(this.overrides[scriptId][i]);
             } else {
                 this[i] = this[this.overrides];
             }
