@@ -46,6 +46,7 @@ function touchStarted(event) {
     if (typeof event !== 'undefined') {
       event.preventDefault(); // Prevent default touch behavior
     }
+    mouseButton = LEFT
     mousePressed(event); // Call the mousePressed function
   }
 }
