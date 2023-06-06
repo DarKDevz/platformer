@@ -41,12 +41,12 @@ var makingNew = false,
     infoIndexes = [],
     addSelect = null,
     id = null;
-function touchStarted() {
+function touchStarted(event) {
   if (touches.length === 1) {
     if (typeof event !== 'undefined') {
       event.preventDefault(); // Prevent default touch behavior
     }
-    mousePressed(); // Call the mousePressed function
+    mousePressed(event); // Call the mousePressed function
   }
 }
 
