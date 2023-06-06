@@ -41,16 +41,6 @@ var makingNew = false,
     infoIndexes = [],
     addSelect = null,
     id = null;
-function touchStarted(event) {
-  if (touches.length === 1) {
-    if (typeof event !== 'undefined') {
-      event.preventDefault(); // Prevent default touch behavior
-    }
-    mouseButton = LEFT
-    mousePressed(event); // Call the mousePressed function
-  }
-}
-
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
     pauseButton.position(windowWidth / 2, 0);
