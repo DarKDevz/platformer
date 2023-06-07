@@ -1,29 +1,114 @@
 class gameScript extends Component {
-    constructor({ obj = {}, fn = '' }) {
+    constructor({ obj = {}, fn = '', vals = {} }) {
         super("gameScript");
         this.ownObject = obj;
+        this.vals = {
+            set shown(value) {
+                if (typeof value === 'object' && Object.keys(value).length > 0) {
+                    for (let key in obj.shown) {
+                        if (obj.shown.hasOwnProperty(key)) {
+                            value[key] = obj.shown[key];
+                        }
+                    }
+                    console.log('The value is an object.');
+                }
+                obj.shown = value;
+                // Call your custom function here
+                console.log("valChanged", value);
+            },
+            get shown() {
+                return obj.shown;
+            }
+        }
+        this.vals.shown = vals;
+        this.id = obj.components.length + 1;
+        this.overrides = {};
+        this.savedFuncs = {};
+        this.newOverrides = {};
         this.fn = fn;
     }
-    set fn(value) {
+    evalValues() {}
+    set fn(source) {
         console.log("changed");
         //Updated script, update the object's script so it calls function
-        this._src = value;
-        this.ownObject.script = value;
-        return value;
+        this._src = source;
+        this.ownObject.script = source;
+        console.log(this.id);
+        this.newOverrides = {};
+        //console.log(this.components[this.id]);
+        //this.components[this.id].evalValues(source);
+        let _temp
+        let _Run = {
+            set shown(value) {
+                _temp = value;
+                // Call your custom function here
+                console.log("valChanged", value);
+            },
+            get shown() {
+                return _temp;
+            }
+        };
+        (new Function(source)).call(_Run);
+        this.newOverrides = _Run;
+        console.log(_Run);
+        this.vals.shown = _Run.shown;
+        delete this.newOverrides.shown
+        console.log(this);
+        if (this.savedFuncs[this.id] === undefined) this.savedFuncs[this.id] = {}
+        this.overrides[this.id] = this.newOverrides;
+        for (let i in this.overrides[this.id]) {
+            console.log(i);
+            //check if the overriden value even exists and if we want to replace with a function
+            if (this.ownObject[i] !== undefined && typeof this.overrides[this.id][i] === "function") {
+                if (this.savedFuncs[this.id][i] === undefined) {
+                    this.savedFuncs[this.id][i] = this.ownObject[i];
+                }
+                this.ownObject[i] = () => {
+                    let shouldSkip = false;
+                    if (this.overrides[this.id][i] !== undefined) {
+                        if (this.overrides[this.id][i].bind(this.ownObject)(...arguments) === 1) {
+                            shouldSkip = true;
+                        }
+                    } else {
+                        //script has been deleted
+                        this.ownObject[i] = this.savedFuncs[this.id][i].bind(this.ownObject)
+                    }
+                    if (!shouldSkip) {
+                        this.savedFuncs[this.id][i].call(this.ownObject, ...arguments);
+                    }
+                }
+                console.log(this.overrides[this.id][i]);
+            } else {
+                this.ownObject[i] = this.overrides[this.id][i];
+            }
+        }
+        console.log(this.overrides);
+        return source;
     }
     get fn() {
         return this._src
     }
     MenuEdit(parent) {
         if (!addEditableScript) return;
-        addEditableScript("function", (val) => {
+        console.log(this);
+        let mainDiv = addEditableScript("function", (val) => {
             let actValue = val;
             this.fn = actValue;
             return actValue;
-        }, this.fn, parent)
+        }, this.fn, parent);
+        for (let value in this.vals.shown) {
+            console.log(this.vals.shown[value]);
+            //parse int if necessary
+            addMenuInput(value,
+                (_) => { return this.vals.shown[value] = parseInt(_) ? parseInt(_) : _ },
+                () => { return this.vals.shown[value] },
+                mainDiv
+            )
+        }
+        //addMenuInput()
     }
     toJson() {
-        return { name: this.componentName, params: { fn: this.fn } };
+        return { name: this.componentName, params: { fn: this.fn, vals: this.vals.shown } };
     }
 }
 class gameSprite extends Component {
@@ -44,7 +129,7 @@ class gameSprite extends Component {
     }
     MenuEdit(parent) {
         if (!addEditableSprite) return;
-        addEditableSprite("function", (val) => {
+        addEditableSprite("Image", (val) => {
             let actValue = val;
             console.log(val);
             this.src = actValue;

@@ -428,21 +428,22 @@ function OpenEditMenu() {
     }
 }
 
-function addEditableScript(name, set, get, parentName = "sideMenu") {
+function addEditableScript(name, set, get, parentName = "sideMenu", additionalDiv = []) {
     let divHolder = createDiv();
     let headerText = createSpan("►Script Component").parent(divHolder);
     let isExpanded = false;
     let _get = get;
     divHolder.class("accordion-header");
-
     let inputField = createDiv();
     inputField.class("accordion-content");
     inputField.hide();
 
     let _span = createSpan(name + ": ").parent(inputField);
-    _span.style('margin-left', '1em');
+    //_span.style('margin-left', '1em');
     // Add a tab space using CSS margin-left
-
+    for (let div in additionalDiv) {
+        div.parent(inputField)
+    }
     let inp = createButton("Script").parent(inputField);
     inp.mousePressed(() => {
         var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get.toString()), "Popup Window", "width=400,height=300");
@@ -454,12 +455,13 @@ function addEditableScript(name, set, get, parentName = "sideMenu") {
     });
     inp.size(177, 21);
 
-    divHolder.mousePressed(() => {
+    headerText.mousePressed(() => {
         isExpanded = !isExpanded;
         if (isExpanded) {
             headerText.html("▼Script Component");
             inputField.show();
             inputField.style("max-height", inputField.elt.scrollHeight + "px");
+            inputField.style('margin-left', '1em');
         } else {
             headerText.html("►Script Component");
             inputField.style("max-height", "0px");
@@ -473,6 +475,7 @@ function addEditableScript(name, set, get, parentName = "sideMenu") {
     infoDivs.push(divHolder);
     infoDivs[infoDivs.length - 1].parent(parentName);
     inputField.parent(divHolder);
+    return inputField;
 }
 
 function addEditableSprite(name, set, get, parentName = "sideMenu") {
@@ -488,7 +491,7 @@ function addEditableSprite(name, set, get, parentName = "sideMenu") {
     inputField.hide();
 
     let _span = createSpan(name + ": ").parent(inputField);
-    _span.style('margin-left', '1em');
+    //_span.style('margin-left', '1em');
     // Add a tab space using CSS margin-left
 
     let inp = createButton("Sprite").parent(inputField);
@@ -499,6 +502,7 @@ function addEditableSprite(name, set, get, parentName = "sideMenu") {
             headerText.html("▼Sprite Component");
             inputField.show();
             inputField.style("max-height", inputField.elt.scrollHeight + "px");
+            inputField.style('margin-left', '1em');
         } else {
             headerText.html("►Sprite Component");
             inputField.style("max-height", "0px");
@@ -524,7 +528,7 @@ function addEditableSprite(name, set, get, parentName = "sideMenu") {
     inputField.parent(divHolder);
 }
 
-function addMenuInput(name, set, get) {
+function addMenuInput(name, set, get, par = 'sideMenu') {
     let divHolder = createDiv();
     divHolder.html();
     let _span = createSpan(name + ": ").parent(divHolder);
@@ -536,7 +540,7 @@ function addMenuInput(name, set, get) {
         inp.value(get())
     });
     infoDivs.push(divHolder);
-    infoDivs[infoDivs.length - 1].parent('sideMenu')
+    infoDivs[infoDivs.length - 1].parent(par)
 }
 
 function editMenuInput(index, name, set, get) {}
@@ -586,7 +590,7 @@ function mouseUp() {
         if (c)
             selectedObjects.push(t_box_id);
         t_box.clr = c * 50
-        //console.log(c);
+            //console.log(c);
     }
 }
 // Warn if overriding existing method
@@ -594,28 +598,28 @@ if (Array.prototype.equals)
     console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
 // attach the .equals method to Array's prototype to call it on any array
 Array.prototype.equals = function(array) {
-    // if the other array is a falsy value, return
-    if (!array)
-        return false;
-
-    // compare lengths - can save a lot of time 
-    if (this.length != array.length)
-        return false;
-
-    for (var i = 0, l = this.length; i < l; i++) {
-        // Check if we have nested arrays
-        if (this[i] instanceof Array && array[i] instanceof Array) {
-            // recurse into the nested arrays
-            if (!this[i].equals(array[i]))
-                return false;
-        } else if (this[i] != array[i]) {
-            // Warning - two different object instances will never be equal: {x:20} != {x:20}
+        // if the other array is a falsy value, return
+        if (!array)
             return false;
+
+        // compare lengths - can save a lot of time 
+        if (this.length != array.length)
+            return false;
+
+        for (var i = 0, l = this.length; i < l; i++) {
+            // Check if we have nested arrays
+            if (this[i] instanceof Array && array[i] instanceof Array) {
+                // recurse into the nested arrays
+                if (!this[i].equals(array[i]))
+                    return false;
+            } else if (this[i] != array[i]) {
+                // Warning - two different object instances will never be equal: {x:20} != {x:20}
+                return false;
+            }
         }
+        return true;
     }
-    return true;
-}
-// Hide method from for-in loops
+    // Hide method from for-in loops
 Object.defineProperty(Array.prototype, "equals", {
     enumerable: false
 });

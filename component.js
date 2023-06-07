@@ -4,6 +4,9 @@ class Component {
         this.componentName = name;
         this.ownObject = {};
     }
+    initialize() {
+
+    }
     MenuEdit(parent) {
 
     }

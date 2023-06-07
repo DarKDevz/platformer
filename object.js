@@ -15,45 +15,49 @@ class GameObject {
         return "GameObject"
     }
     set script(source) {
-        var scriptId = 0;
-        for (let componentId in this.components) {
-            let component = this.components[componentId];
-            console.log(component);
-            if (component._src && component._src === source) {
-                console.log("found it", componentId);
-                scriptId = componentId;
-            }
-        }
-        console.log(scriptId);
-        this.newOverrides = {};
-        (new Function(source)).call(this.newOverrides);
-        if (this.savedFuncs[scriptId] === undefined) this.savedFuncs[scriptId] = {}
-        this.overrides[scriptId] = this.newOverrides;
-        for (let i in this.overrides[scriptId]) {
-            console.log(i);
-            //check if the overriden value even exists and if we want to replace with a function
-            if (this[i] !== undefined && typeof this.overrides[scriptId][i] === "function") {
-                if (this.savedFuncs[scriptId][i] === undefined) {
-                    this.savedFuncs[scriptId][i] = this[i];
-                }
-                this[i] = function() {
-                    let skipFunc = false;
-                    if (this.overrides[scriptId][i] !== undefined) {
-                        if(this.overrides[scriptId][i].bind(this)(...arguments)) {
-                            skipFunc = true;
-                        }
-                    } else {
-                        //script has been deleted
-                        this[i] = this.savedFuncs[scriptId][i].bind(this)
-                    }
-                    if(!skipFunc)this.savedFuncs[scriptId][i].call(this, ...arguments);
-                }
-                console.log(this.overrides[scriptId][i]);
-            } else {
-                this[i] = this[this.overrides];
-            }
-        }
-        console.log(this.overrides);
+        // var this.id = 0;
+        // for (let componentId in this.components) {
+        //     let component = this.components[componentId];
+        //     console.log(component);
+        //     if (component._src && component._src === source) {
+        //         console.log("found it", componentId);
+        //         this.id = componentId;
+        //     }
+        // }
+        // console.log(this.id);
+        // this.newOverrides = {};
+        // console.log(this.components[this.id]);
+        // //this.components[this.id].evalValues(source);
+        // (new Function(source)).call(this.newOverrides);
+        // if (this.savedFuncs[this.id] === undefined) this.savedFuncs[this.id] = {}
+        // this.overrides[this.id] = this.newOverrides;
+        // for (let i in this.overrides[this.id]) {
+        //     console.log(i);
+        //     //check if the overriden value even exists and if we want to replace with a function
+        //     if (this[i] !== undefined && typeof this.overrides[this.id][i] === "function") {
+        //         if (this.savedFuncs[this.id][i] === undefined) {
+        //             this.savedFuncs[this.id][i] = this[i];
+        //         }
+        //         this[i] = function() {
+        //             let shouldSkip = false;
+        //             if (this.overrides[this.id][i] !== undefined) {
+        //                 if (this.overrides[this.id][i].bind(this)(...arguments) === 1) {
+        //                     shouldSkip = true;
+        //                 }
+        //             } else {
+        //                 //script has been deleted
+        //                 this[i] = this.savedFuncs[this.id][i].bind(this)
+        //             }
+        //             if (!shouldSkip) {
+        //                 this.savedFuncs[this.id][i].call(this, ...arguments);
+        //             }
+        //         }
+        //         console.log(this.overrides[this.id][i]);
+        //     } else {
+        //         this[i] = this[this.overrides];
+        //     }
+        // }
+        // console.log(this.overrides);
     }
     get script() {
         throw new Error("You shouldn't get it from here")
