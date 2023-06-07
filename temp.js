@@ -1,108 +1,81 @@
-class GameObject {
-    constructor(x, y, tag) {
-        this.x = x;
-        this.y = y;
-        this.width = 1;
-        this.height = 1;
-        this.isCollidable = false;
-        this.tag = tag;
-        this.components = [];
-        this.overrides = {};
-        this.savedFuncs = {};
-        this.newOverrides = {};
+class gameScript extends Component {
+    constructor({ obj = {}, fn = '' , vals = {}}) {
+        super("gameScript");
+        this.ownObject = obj;
+        this.fn = fn;
+        this.vals = vals;
     }
-    getClassName() {
-        return "GameObject"
+    set fn(value) {
+        console.log("changed");
+        //Updated script, update the object's script so it calls function
+        this._src = value;
+        this.ownObject.script = value;
+        return value;
     }
-    set script(source) {
-        let whichComponent = this.components;
-        var scriptId = 0;
-        for(let componentId in this.components) {
-            let component = this.components[componentId];
-            console.log(component);
-            if(component._src && component._src === source) {
-                console.log("found it", componentId);
-                scriptId = componentId+1;
-                break;
-            }
+    get fn() {
+        return this._src
+    }
+    MenuEdit(parent) {
+        if (!addEditableScript) return;
+        console.log(this);
+        addEditableScript("function", (val) => {
+            let actValue = val;
+            this.fn = actValue;
+            return actValue;
+        }, this.fn, parent);
+        for(let value in this.vals) {
+            console.log(this.vals[value]);
+            //addMenuInput()
         }
-        console.log(scriptId);
-        (new Function(source)).call(this.newOverrides);
-        //this.savedFuncs[scriptId] = {}
-        this.overrides[scriptId] = this.newOverrides;
-        for (let i in this.overrides[scriptId]) {
-            console.log(i);
-            //check if the overriden value even exists and if we want to replace with a function
-            if (this[i] !== undefined && typeof this.overrides[i] === "function") {
-                if (this.savedFuncs[scriptId][i] === undefined) {
-                    this.savedFuncs[scriptId][i] = this[i];
-                }
-                this[i] = function() {
-                    this.overrides[scriptId][i].call(this, ...arguments);
-                    this.savedFuncs[scriptId][i].call(this, ...arguments);
-                }
-                console.log(this.overrides[i]);
-            } else {
-                this[i] = this[this.overrides];
-            }
-        }
-        console.log(this.overrides);
+        //addMenuInput()
     }
-    get script() {
-        throw new Error("You shouldn't get it from here")
-    }
-    offSet(x, y) {
-        this.x = x;
-        this.y = y;
-    }
-    getValues() {
-        return [this.x, this.y];
-    }
-    getValuesName() {
-        return ["x", "y"];
-    }
-    getActualValuesName() {
-        return ["x", "y"];
-    }
-    display() {
-
-    }
-    collision(obj, trigger = false) {
-        var oX, oY, oW, oH;
-        if (obj.pos !== undefined) {
-            oX = obj.pos.x;
-            oY = obj.pos.y;
-        } else {
-            oX = obj.x;
-            oY = obj.y;
-        }
-        if (obj.size !== undefined) {
-            oW = obj.size.x;
-            oH = obj.size.y;
-        } else {
-            oW = obj.width;
-            oH = obj.height;
-        }
-        let rect2 = {
-            x: oX,
-            y: oY,
-            width: oW,
-            height: oH,
-        }
-        let collides = collide(this, rect2);
-        if (collides && trigger) this.onCollide();
-        return collides;
-    }
-    update() {
-
-    }
-    earlyUpdate() {
-
-    }
-    lateUpdate() {
-
-    }
-    customDraw() {
-        point(this.x, this.y)
+    toJson() {
+        return { name: this.componentName, params: { fn: this.fn, vals: this.vals} };
     }
 }
+class gameSprite extends Component {
+    constructor({ obj = {}, src = '' }) {
+        super("gameSprite");
+        this.ownObject = obj;
+        console.log(src);
+        this._src = src;
+        this.src = src;
+        this.sprite;
+    }
+    set src(value) {
+        console.log("changed");
+        return this._src = value;
+    }
+    get src() {
+        return this._src
+    }
+    MenuEdit(parent) {
+        if (!addEditableSprite) return;
+        addEditableSprite("function", (val) => {
+            let actValue = val;
+            console.log(val);
+            this.src = actValue;
+            return actValue;
+        }, this.src, parent)
+    }
+    getSprite() {
+        return this.sprite.get(...arguments)
+    }
+    reloadImage() {
+        let _img = this.src;
+        console.log(_img);
+        var _sprite = loadImage("data:image/png;base64," + _img["imageb64"].toString());
+        _sprite.width = _img.width;
+        _sprite.height = _img.height;
+        this.ownObject.sprite = _sprite;
+        this.sprite = _sprite;
+    }
+    getImage() {
+        return this.ownObject.sprite;
+    }
+    toJson() {
+        return { name: this.componentName, params: { src: this.src } };
+    }
+}
+addComponent("gameScript", gameScript);
+addComponent("gameSprite", gameSprite);
