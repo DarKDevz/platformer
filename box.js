@@ -39,7 +39,7 @@ class Box extends GameObject {
         let collides = collide(this, { x: oX, y: oY, width: oW, height: oH });
 
         if (collides) {
-            this.onCollide();
+            this.onCollide(obj);
         }
 
         return collides;
