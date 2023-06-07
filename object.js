@@ -37,13 +37,16 @@ class GameObject {
                     this.savedFuncs[scriptId][i] = this[i];
                 }
                 this[i] = function() {
+                    let skipFunc = false;
                     if (this.overrides[scriptId][i] !== undefined) {
-                        this.overrides[scriptId][i].bind(this)(...arguments);
+                        if(this.overrides[scriptId][i].bind(this)(...arguments)) {
+                            skipFunc = true;
+                        }
                     } else {
                         //script has been deleted
                         this[i] = this.savedFuncs[scriptId][i].bind(this)
                     }
-                    this.savedFuncs[scriptId][i].call(this, ...arguments);
+                    if(!skipFunc)this.savedFuncs[scriptId][i].call(this, ...arguments);
                 }
                 console.log(this.overrides[scriptId][i]);
             } else {
