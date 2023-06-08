@@ -11,6 +11,9 @@ class GameObject {
         this.savedFuncs = {};
         this.newOverrides = {};
     }
+    init() {
+        
+    }
     getClassName() {
         return "GameObject"
     }
