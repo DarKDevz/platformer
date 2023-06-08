@@ -101,7 +101,16 @@ class gameScript extends Component {
             //window.vals.push(this.vals.shown[value]);
             //parse int if necessary
             if(this.vals.shown[value] instanceof p5.Vector) {
-                console.log("isVector");
+                            addMenuInput(value + " x",
+                (_) => { return this.vals.shown[value].x = parseInt(_) ? parseInt(_) : _ },
+                () => { return this.vals.shown[value].x },
+                mainDiv
+            );
+                                            addMenuInput(value + " y",
+                (_) => { return this.vals.shown[value].y = parseInt(_) ? parseInt(_) : _ },
+                () => { return this.vals.shown[value].y },
+                mainDiv
+            )
             }else {
             addMenuInput(value,
                 (_) => { return this.vals.shown[value] = parseInt(_) ? parseInt(_) : _ },
