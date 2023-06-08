@@ -37,7 +37,7 @@ class gameScript extends Component {
         this.newOverrides = {};
         //console.log(this.components[this.id]);
         //this.components[this.id].evalValues(source);
-        let _temp
+        let _temp = {};
         let _Run = {
             set shown(value) {
                 _temp = value;
