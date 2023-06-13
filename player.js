@@ -174,7 +174,7 @@ class Player {
     }
     camera() {
         let pos = this.posCenter();
-        this.cameraPos = createVector(lerp(this.cameraPos.x, pos.x - canvas.width / 2, .05), lerp(this.cameraPos.y, pos.y - canvas.height / 2, .05));
+        this.cameraPos = createVector(lerp(this.cameraPos.x, pos.x - width / 2, .05), lerp(this.cameraPos.y, pos.y - height / 2, .05));
         resetMatrix();
         translate(-this.cameraPos.x, -this.cameraPos.y);
 
