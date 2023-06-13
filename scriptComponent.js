@@ -102,7 +102,7 @@ class gameScript extends Component {
             console.log(this.vals.shown[value]);
             //parse int if necessary
             let divHolder = createDiv().parent(mainDiv[0]);
-            let headerText = createSpan(value+"Test").parent(divHolder);
+            let headerText = createSpan(value).parent(divHolder);
             let inputField = createDiv();
             //let lineBreak = createP().parent(divHolder);
             addMenuInput(value, (_)=>{
@@ -112,7 +112,7 @@ class gameScript extends Component {
                 return this.vals.shown[value]
             }
             , inputField)
-            accordionMenu(headerText,inputField,"Shown",
+            accordionMenu(headerText,inputField,value,
                               ()=>{
                                   console.log(mainDiv[0].elt.scrollHeight+inputField.elt.scrollHeight);
                                   mainDiv[0].elt.style.maxHeight = mainDiv[0].elt.scrollHeight+inputField.elt.scrollHeight}
