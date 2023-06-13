@@ -89,24 +89,36 @@ class gameScript extends Component {
         return this._src
     }
     MenuEdit(parent) {
-        if (!addEditableScript) return;
-        console.log(this);
-        let mainDiv = addEditableScript("function", (val) => {
+        if (!addEditableScript)
+            return;
+        console.log(parent);
+        let mainDiv = addEditableScript("function", (val)=>{
             let actValue = val;
             this.fn = actValue;
             return actValue;
-        }, () => this.fn, parent);
+        }
+        , ()=>this.fn, parent);
         for (let value in this.vals.shown) {
             console.log(this.vals.shown[value]);
             //parse int if necessary
-            addMenuInput(value,
-                (_) => { return this.vals.shown[value] = parseInt(_) ? parseInt(_) : _ },
-                () => { return this.vals.shown[value] },
-                mainDiv
-            )
-        }
-        //addMenuInput()
-    }
+            let divHolder = createDiv().parent(mainDiv[0]);
+            let headerText = createSpan(value+"Test").parent(divHolder);
+            let inputField = createDiv();
+            //let lineBreak = createP().parent(divHolder);
+            addMenuInput(value, (_)=>{
+                return this.vals.shown[value] = parseInt(_) ? parseInt(_) : _
+            }
+            , ()=>{
+                return this.vals.shown[value]
+            }
+            , inputField)
+            accordionMenu(headerText,inputField,"Shown",
+                              ()=>{
+                                  console.log(mainDiv[0].elt.scrollHeight+inputField.elt.scrollHeight);
+                                  mainDiv[0].elt.style.maxHeight = mainDiv[0].elt.scrollHeight+inputField.elt.scrollHeight}
+                         );
+            inputField.parent(mainDiv[0]);
+        }}
     toJson() {
         return { name: this.componentName, params: { fn: this.fn, vals: this.vals.shown } };
     }
