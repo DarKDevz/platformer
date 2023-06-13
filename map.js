@@ -90,7 +90,7 @@ function setup() {
     addButton = uiButton('add New', 75, 0);
     addButton.mousePressed(() => {
         makingNew = !makingNew;
-        //wait 4 seconds then disable
+        //wait 4 seconds then disable 
         setTimeout(()=>{makingNew = false},4000)
     })
     addSelect = createSelect();
@@ -452,7 +452,8 @@ function addEditableScript(name, set, get, parentName = "sideMenu", additionalDi
         // Receive updated text from the popup window
         window.receivePopupText = (text) => {
             console.log(text);
-            _get = ()=>set(text);
+            set(text);
+            _get = ()=>text;
         };
     });
     inp.size(177, 21);
