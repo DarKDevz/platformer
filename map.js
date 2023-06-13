@@ -90,6 +90,8 @@ function setup() {
     addButton = uiButton('add New', 75, 0);
     addButton.mousePressed(() => {
         makingNew = !makingNew;
+        //wait 4 seconds then disable
+        setTimeout(()=>{makingNew = false},4000)
     })
     addSelect = createSelect();
     addSelect.position(0, 0);
