@@ -429,107 +429,93 @@ function OpenEditMenu() {
         }
     }
 }
+function accordionMenu(headerText, inputField, name, onShow = () => {}) {
+  let isExpanded = false;
+
+  headerText.class("accordion-header");
+      headerText.html("►" + name);
+      inputField.style("max-height", "0px");
+  inputField.class("accordion-content");
+  inputField.hide();
+
+  headerText.mousePressed(() => {
+    isExpanded = !isExpanded;
+    if (isExpanded) {
+      headerText.html("▼" + name);
+      inputField.show();
+        onShow();
+      inputField.style("max-height", inputField.elt.scrollHeight + "px");
+      inputField.style('margin-left', '1em');
+    } else {
+      headerText.html("►" + name);
+      inputField.style("max-height", "0px");
+      setTimeout(() => {
+          onShow();
+        inputField.hide();
+      }, 200);
+    }
+  });
+
+  return inputField;
+}
 
 function addEditableScript(name, set, get, parentName = "sideMenu", additionalDiv = []) {
-    let divHolder = createDiv();
-    let headerText = createSpan("►Script Component").parent(divHolder);
-    let isExpanded = false;
-    let _get = get;
-    divHolder.class("accordion-header");
-    let inputField = createDiv();
-    inputField.class("accordion-content");
-    inputField.hide();
+  let divHolder = createDiv();
+  let headerText = createSpan("Script Component").parent(divHolder);
+  let _get = get;
+  let inputField = createDiv();
 
-    let _span = createSpan(name + ": ").parent(inputField);
-    //_span.style('margin-left', '1em');
-    // Add a tab space using CSS margin-left
-    for (let div in additionalDiv) {
-        div.parent(inputField)
-    }
-    let inp = createButton("Script").parent(inputField);
-    inp.mousePressed(() => {
-        var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get().toString()), "Popup Window", "width=400,height=300");
-        // Receive updated text from the popup window
-        window.receivePopupText = (text) => {
-            console.log(text);
-            set(text);
-            _get = ()=>text;
-        };
-    });
-    inp.size(177, 21);
+  let _span = createSpan(name + ": ").parent(inputField);
+  
+  for (let div in additionalDiv) {
+    div.parent(inputField);
+  }
 
-    headerText.mousePressed(() => {
-        isExpanded = !isExpanded;
-        if (isExpanded) {
-            headerText.html("▼Script Component");
-            inputField.show();
-            inputField.style("max-height", inputField.elt.scrollHeight + "px");
-            inputField.style('margin-left', '1em');
-        } else {
-            headerText.html("►Script Component");
-            inputField.style("max-height", "0px");
-            setTimeout(() => {
-                inputField.hide();
-            }, 200);
-            // Adjust the timeout value to match the CSS transition duration
-        }
-    });
+  let inp = createButton("Script").parent(inputField);
+  inp.mousePressed(() => {
+    var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get().toString()), "Popup Window", "width=400,height=300");
+    window.receivePopupText = (text) => {
+      console.log(text);
+      set(text);
+      _get = () => text;
+    };
+  });
+  inp.size(177, 21);
 
-    infoDivs.push(divHolder);
-    infoDivs[infoDivs.length - 1].parent(parentName);
-    inputField.parent(divHolder);
-    return inputField;
+  accordionMenu(headerText, inputField, "Script Component");
+
+  infoDivs.push(divHolder);
+  infoDivs[infoDivs.length - 1].parent(parentName);
+  inputField.parent(divHolder);
+  return [inputField,divHolder];
 }
 
 function addEditableSprite(name, set, get, parentName = "sideMenu") {
-    let divHolder = createDiv();
-    let headerText = createSpan("►Sprite Component").parent(divHolder);
-    let _get = get;
-    let isExpanded = false;
+  let divHolder = createDiv();
+  let headerText = createSpan("Sprite Component").parent(divHolder);
+  let _get = get;
+  let inputField = createDiv();
 
-    divHolder.class("accordion-header");
+  let _span = createSpan(name + ": ").parent(inputField);
 
-    let inputField = createDiv();
-    inputField.class("accordion-content");
-    inputField.hide();
+  let inp = createButton("Sprite").parent(inputField);
 
-    let _span = createSpan(name + ": ").parent(inputField);
-    //_span.style('margin-left', '1em');
-    // Add a tab space using CSS margin-left
+  accordionMenu(headerText, inputField, "Sprite Component");
 
-    let inp = createButton("Sprite").parent(inputField);
+  inp.mousePressed(() => {
+    let popup = window.open('imagePopup.html', '_blank', 'width=400,height=400');
+    window.jsonImage = (text) => {
+      console.log(text);
+      _get = set(text);
+    };
+  });
 
-    headerText.mousePressed(() => {
-        isExpanded = !isExpanded;
-        if (isExpanded) {
-            headerText.html("▼Sprite Component");
-            inputField.show();
-            inputField.style("max-height", inputField.elt.scrollHeight + "px");
-            inputField.style('margin-left', '1em');
-        } else {
-            headerText.html("►Sprite Component");
-            inputField.style("max-height", "0px");
-            setTimeout(() => {
-                inputField.hide();
-            }, 200);
-            // Adjust the timeout value to match the CSS transition duration
-        }
-    });
-
-    inp.mousePressed(() => {
-        let popup = window.open('imagePopup.html', '_blank', 'width=400,height=400');
-        // Receive updated text from the popup window
-        window.jsonImage = (text) => {
-            console.log(text);
-            _get = set(text);
-        };
-    });
-
-    inp.size(177, 21);
-    let infoId = infoDivs.push(divHolder);
-    infoDivs[infoId - 1].parent(parentName);
-    inputField.parent(divHolder);
+  inp.size(177, 21);
+  let infoId = infoDivs.push(divHolder);
+  infoDivs[infoId - 1].parent(parentName);
+  inputField.parent(divHolder);
 }
+
 
 function addMenuInput(name, set, get, par = 'sideMenu') {
     let divHolder = createDiv();
