@@ -446,11 +446,11 @@ function addEditableScript(name, set, get, parentName = "sideMenu", additionalDi
     }
     let inp = createButton("Script").parent(inputField);
     inp.mousePressed(() => {
-        var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get.toString()), "Popup Window", "width=400,height=300");
+        var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get().toString()), "Popup Window", "width=400,height=300");
         // Receive updated text from the popup window
         window.receivePopupText = (text) => {
             console.log(text);
-            _get = set(text);
+            _get = ()=>set(text);
         };
     });
     inp.size(177, 21);
