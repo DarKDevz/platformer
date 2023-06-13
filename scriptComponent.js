@@ -1,17 +1,12 @@
 class gameScript extends Component {
-    constructor({ obj = {}, fn = '', vals = {} }) {
+    constructor({obj={}, fn='', vals={}}) {
         super("gameScript");
         this.ownObject = obj;
         this.vals = {
             set shown(value) {
                 if (typeof value === 'object' && Object.keys(value).length > 0) {
                     for (let key in obj.shown) {
-                        console.log((typeof value[key]) === 'object');
-                        if((typeof value[key]) === 'object') {
-                            throw new Error('You cant use objects in the shown variable');
-                            value[key] = 'notUsable';
-                        }
-                        else if (this.ownObject.shown.hasOwnProperty(key)) {
+                        if (this.ownObject.shown.hasOwnProperty(key)) {
                             value[key] = obj.shown[key];
                         }
                     }
@@ -45,6 +40,17 @@ class gameScript extends Component {
         let _temp = {};
         let _Run = {
             set shown(value) {
+                if (typeof value === 'object' && Object.keys(value).length > 0) {
+                    for (let key in value) {
+                        console.log((typeof value[key]) === 'object');
+                        if ((typeof value[key]) === 'object') {
+                            alert('You cant use objects in the shown variable, made the value notUsable');
+                            value[key] = 'notUsable';
+                        }
+
+                    }
+                    console.log('The value is an object.');
+                }
                 _temp = value;
                 // Call your custom function here
                 console.log("valChanged", value);
@@ -59,7 +65,8 @@ class gameScript extends Component {
         this.vals.shown = _Run.shown;
         delete this.newOverrides.shown
         console.log(this);
-        if (this.savedFuncs[this.id] === undefined) this.savedFuncs[this.id] = {}
+        if (this.savedFuncs[this.id] === undefined)
+            this.savedFuncs[this.id] = {}
         this.overrides[this.id] = this.newOverrides;
         for (let i in this.overrides[this.id]) {
             console.log(i);
@@ -68,7 +75,7 @@ class gameScript extends Component {
                 if (this.savedFuncs[this.id][i] === undefined) {
                     this.savedFuncs[this.id][i] = this.ownObject[i];
                 }
-                this.ownObject[i] = () => {
+                this.ownObject[i] = ()=>{
                     let shouldSkip = false;
                     if (this.overrides[this.id][i] !== undefined) {
                         if (this.overrides[this.id][i].bind(this.ownObject)(...arguments) === 1) {
@@ -117,19 +124,26 @@ class gameScript extends Component {
                 return this.vals.shown[value]
             }
             , inputField)
-            accordionMenu(headerText,inputField,value,
-                              ()=>{
-                                  console.log(mainDiv[0].elt.scrollHeight+inputField.elt.scrollHeight);
-                                  mainDiv[0].elt.style.maxHeight = mainDiv[0].elt.scrollHeight+inputField.elt.scrollHeight}
-                         );
+            accordionMenu(headerText, inputField, value, ()=>{
+                console.log(mainDiv[0].elt.scrollHeight + inputField.elt.scrollHeight);
+                mainDiv[0].elt.style.maxHeight = mainDiv[0].elt.scrollHeight + inputField.elt.scrollHeight
+            }
+            );
             inputField.parent(mainDiv[0]);
-        }}
+        }
+    }
     toJson() {
-        return { name: this.componentName, params: { fn: this.fn, vals: this.vals.shown } };
+        return {
+            name: this.componentName,
+            params: {
+                fn: this.fn,
+                vals: this.vals.shown
+            }
+        };
     }
 }
 class gameSprite extends Component {
-    constructor({ obj = {}, src = '' }) {
+    constructor({obj={}, src=''}) {
         super("gameSprite");
         this.ownObject = obj;
         console.log(src);
@@ -145,13 +159,15 @@ class gameSprite extends Component {
         return this._src
     }
     MenuEdit(parent) {
-        if (!addEditableSprite) return;
-        addEditableSprite("Image", (val) => {
+        if (!addEditableSprite)
+            return;
+        addEditableSprite("Image", (val)=>{
             let actValue = val;
             console.log(val);
             this.src = actValue;
             return actValue;
-        }, this.src, parent)
+        }
+        , this.src, parent)
     }
     getSprite() {
         return this.sprite.get(...arguments)
@@ -169,7 +185,12 @@ class gameSprite extends Component {
         return this.ownObject.sprite;
     }
     toJson() {
-        return { name: this.componentName, params: { src: this.src } };
+        return {
+            name: this.componentName,
+            params: {
+                src: this.src
+            }
+        };
     }
 }
 addComponent("gameScript", gameScript);
