@@ -95,7 +95,7 @@ class gameScript extends Component {
             let actValue = val;
             this.fn = actValue;
             return actValue;
-        }, this.fn, parent);
+        }, () => this.fn, parent);
         for (let value in this.vals.shown) {
             console.log(this.vals.shown[value]);
             //parse int if necessary
