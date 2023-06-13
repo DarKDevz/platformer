@@ -6,7 +6,12 @@ class gameScript extends Component {
             set shown(value) {
                 if (typeof value === 'object' && Object.keys(value).length > 0) {
                     for (let key in obj.shown) {
-                        if (obj.shown.hasOwnProperty(key)) {
+                        console.log((typeof value[key]) === 'object');
+                        if((typeof value[key]) === 'object') {
+                            throw new Error('You cant use objects in the shown variable');
+                            value[key] = 'notUsable';
+                        }
+                        else if (this.ownObject.shown.hasOwnProperty(key)) {
                             value[key] = obj.shown[key];
                         }
                     }
