@@ -189,29 +189,17 @@ class gameSprite extends Component {
 }
 addComponent("gameScript", gameScript);
 addComponent("gameSprite", gameSprite);
-function isCommonConstructor(value) {
-    const commonConstructors = [Object, Array, String, Number, Boolean, Date, RegExp, Error];
-
-    for (const constructor of commonConstructors) {
-        if (value instanceof constructor) {
-            return true;
-        }
-    }
-
-    return false;
-}
 function removeNonNormal(obj) {
-    const replacer = (key,value)=>{
-        console.log(key,isCommonConstructor(value));
-        if (!isCommonConstructor(value) && !(value instanceof p5.Vector)) {
-            return undefined;
-            // Ignore the property
-        }
-        return value;
-        // Serialize the property as usual
-    }
-    ;
+const replacer = (key, value) => {
+    if(key === "p5") return undefined
+    if(key === "" || value instanceof p5.Vector) return value;
+    console.log(key,value.constructor.name, typeof value);
+  if (value.constructor.name !== "Object" && value.constructor.name !== "String" && value.constructor.name !== "Number" && value.constructor.name !== "Boolean" ) {
+    return undefined; // Ignore the property
+  }
+  return value; // Serialize the property as usual
+};
 
-    const jsonString = JSON.stringify(obj, replacer);
+const jsonString = JSON.stringify(obj, replacer);
     return JSON.parse(jsonString)
 }
