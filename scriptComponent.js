@@ -38,26 +38,17 @@ class gameScript extends Component {
         //console.log(this.components[this.id]);
         //this.components[this.id].evalValues(source);
         let _temp = {};
-        let _Run = {
-            set shown(value) {
-                if (typeof value === 'object' && Object.keys(value).length > 0) {
-                    for (let key in value) {
-                        console.log((typeof value[key]) === 'object');
-                        if ((typeof value[key]) === 'object') {
-                            alert('You cant use objects in the shown variable, made the value notUsable');
-                            value[key] = 'notUsable';
-                        }
 
+        let _Run = {
+            shown: new Proxy(_temp,{
+                set(target, key, value) {
+                    if (key === "valueDetected") {
+                        console.log("valueDetected is added or modified:", value);
                     }
-                    console.log('The value is an object.');
+                    target[key] = value;
+                    return true;
                 }
-                _temp = value;
-                // Call your custom function here
-                console.log("valChanged", value);
-            },
-            get shown() {
-                return _temp;
-            }
+            })
         };
         (new Function(source)).call(_Run);
         this.newOverrides = _Run;
