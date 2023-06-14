@@ -42,10 +42,12 @@ class gameScript extends Component {
         let _Run = {
             shown: new Proxy(_temp,{
                 set(target, key, value) {
+                    let tValue = removeNonNormal(value);
+                    console.log(value,removeNonNormal(value));
                     if (key === "valueDetected") {
                         console.log("valueDetected is added or modified:", value);
                     }
-                    target[key] = value;
+                    target[key] = tValue;
                     return true;
                 }
             })
@@ -187,22 +189,28 @@ class gameSprite extends Component {
 addComponent("gameScript", gameScript);
 addComponent("gameSprite", gameSprite);
 function isCommonConstructor(value) {
-  const commonConstructors = [
-    Object,
-    Array,
-    String,
-    Number,
-    Boolean,
-    Date,
-    RegExp,
-    Error
-  ];
+    const commonConstructors = [Object, Array, String, Number, Boolean, Date, RegExp, Error];
 
-  for (const constructor of commonConstructors) {
-    if (value instanceof constructor) {
-      return true;
+    for (const constructor of commonConstructors) {
+        if (value instanceof constructor) {
+            return true;
+        }
     }
-  }
 
-  return false;
+    return false;
+}
+function removeNonNormal(obj) {
+    const replacer = (key,value)=>{
+        //console.log(key,value.constructor.name);
+        if (!isCommonConstructor(value) && !(value instanceof p5.Vector)) {
+            return undefined;
+            // Ignore the property
+        }
+        return value;
+        // Serialize the property as usual
+    }
+    ;
+
+    const jsonString = JSON.stringify(obj, replacer);
+    return JSON.parse(jsonString)
 }
