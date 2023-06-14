@@ -13,6 +13,7 @@ class gameScript extends Component {
                     console.log('The value is an object.');
                 }
                 obj.shown = value;
+                this.editableVals = removeNonNormal(value);
                 // Call your custom function here
                 console.log("valChanged", value);
             },
@@ -43,7 +44,7 @@ class gameScript extends Component {
             shown: new Proxy(_temp,{
                 set(target, key, value) {
                     target[key] = value;
-                    let tValue = removeNonNormal(target);
+                    let tValue = (target);
                     console.log(value,removeNonNormal(target));
                     if (key === "valueDetected") {
                         console.log("valueDetected is added or modified:", value);
@@ -104,18 +105,18 @@ class gameScript extends Component {
             return actValue;
         }
         , ()=>this.fn, parent);
-        for (let value in this.vals.shown) {
-            console.log(this.vals.shown[value]);
+        for (let value in this.vals.editableVals) {
+            console.log(this.vals.editableVals[value]);
             //parse int if necessary
             let divHolder = createDiv().parent(mainDiv[0]);
             let headerText = createSpan(value).parent(divHolder);
             let inputField = createDiv();
             //let lineBreak = createP().parent(divHolder);
             addMenuInput(value, (_)=>{
-                return this.vals.shown[value] = parseInt(_) ? parseInt(_) : _
+                return this.vals.editableVals[value] = parseInt(_) ? parseInt(_) : _
             }
             , ()=>{
-                return this.vals.shown[value]
+                return this.vals.editableVals[value]
             }
             , inputField)
             accordionMenu(headerText, inputField, value, ()=>{
@@ -131,7 +132,7 @@ class gameScript extends Component {
             name: this.componentName,
             params: {
                 fn: this.fn,
-                vals: this.vals.shown
+                vals: this.vals.editableVals
             }
         };
     }
