@@ -6,7 +6,7 @@ class gameScript extends Component {
             set shown(value) {
                 if (typeof value === 'object' && Object.keys(value).length > 0) {
                     for (let key in obj.shown) {
-                        if (this.ownObject.shown.hasOwnProperty(key)) {
+                        if (obj.shown.hasOwnProperty(key)) {
                             value[key] = obj.shown[key];
                         }
                     }
@@ -195,3 +195,23 @@ class gameSprite extends Component {
 }
 addComponent("gameScript", gameScript);
 addComponent("gameSprite", gameSprite);
+function isCommonConstructor(value) {
+  const commonConstructors = [
+    Object,
+    Array,
+    String,
+    Number,
+    Boolean,
+    Date,
+    RegExp,
+    Error
+  ];
+
+  for (const constructor of commonConstructors) {
+    if (value instanceof constructor) {
+      return true;
+    }
+  }
+
+  return false;
+}
