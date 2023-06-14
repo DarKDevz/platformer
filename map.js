@@ -445,6 +445,10 @@ function accordionMenu(headerText, inputField, name, onShow = () => {}) {
       inputField.show();
         onShow();
       inputField.style("max-height", inputField.elt.scrollHeight + "px");
+      setTimeout(() => {
+          console.log("??");
+          inputField.style('max-height', 'none');
+      }, 400);
       inputField.style('margin-left', '1em');
     } else {
       headerText.html("►" + name);
