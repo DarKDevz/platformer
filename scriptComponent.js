@@ -42,12 +42,13 @@ class gameScript extends Component {
         let _Run = {
             shown: new Proxy(_temp,{
                 set(target, key, value) {
-                    let tValue = removeNonNormal(value);
-                    console.log(value,removeNonNormal(value));
+                    target[key] = tValue;
+                    let tValue = removeNonNormal(target);
+                    console.log(value,removeNonNormal(target));
                     if (key === "valueDetected") {
                         console.log("valueDetected is added or modified:", value);
                     }
-                    target[key] = tValue;
+                    target = tValue;
                     return true;
                 }
             })
@@ -201,7 +202,7 @@ function isCommonConstructor(value) {
 }
 function removeNonNormal(obj) {
     const replacer = (key,value)=>{
-        //console.log(key,value.constructor.name);
+        console.log(key,isCommonConstructor(value));
         if (!isCommonConstructor(value) && !(value instanceof p5.Vector)) {
             return undefined;
             // Ignore the property
