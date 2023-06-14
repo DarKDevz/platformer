@@ -48,15 +48,15 @@ class gameScript extends Component {
                     if (key === "valueDetected") {
                         console.log("valueDetected is added or modified:", value);
                     }
-                    target = tValue;
+                    target[key] = tValue[key];
                     return true;
                 }
             })
         };
         (new Function(source)).call(_Run);
         this.newOverrides = _Run;
-        console.log(_Run);
-        this.vals.shown = _Run.shown;
+        console.log(_Run, _temp);
+        this.vals.shown = _temp;
         delete this.newOverrides.shown
         console.log(this);
         if (this.savedFuncs[this.id] === undefined)
