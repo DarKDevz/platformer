@@ -45,7 +45,7 @@ class gameScript extends Component {
                 set(target, key, value) {
                     target[key] = value;
                     let tValue = (target);
-                    console.log(value,removeNonNormal(target));
+                    console.log(value, removeNonNormal(target));
                     if (key === "valueDetected") {
                         console.log("valueDetected is added or modified:", value);
                     }
@@ -95,6 +95,31 @@ class gameScript extends Component {
     get fn() {
         return this._src
     }
+    addNewEditObj(obj, parent='sideMenu') {
+        let Holder = parent
+        console.log(obj)
+        for (let i in obj) {
+            console.log(i, obj[i], typeof obj[i]);
+            if (typeof obj[i] === "object") {
+                let divHolder = createDiv().parent(parent);
+                let headerText = createDiv();
+                Holder = accordionMenu(headerText, createDiv(), i);
+                headerText.parent(divHolder);
+                Holder.parent(divHolder);
+                infoDivs.push(headerText);
+                this.addNewEditObj(obj[i], Holder);
+            } else {
+                addMenuInput(i, (_)=>{
+                    return obj[i] = parseInt(_) ? parseInt(_) : _
+                }
+                , ()=>{
+                    return obj[i]
+                }
+                , parent)
+                console.log("final Object", obj[i]);
+            }
+        }
+    }
     MenuEdit(parent) {
         if (!addEditableScript)
             return;
@@ -105,27 +130,7 @@ class gameScript extends Component {
             return actValue;
         }
         , ()=>this.fn, parent);
-        for (let value in this.vals.editableVals) {
-            console.log(this.vals.editableVals[value]);
-            //parse int if necessary
-            let divHolder = createDiv().parent(mainDiv[0]);
-            let headerText = createSpan(value).parent(divHolder);
-            let inputField = createDiv();
-            //let lineBreak = createP().parent(divHolder);
-            addMenuInput(value, (_)=>{
-                return this.vals.editableVals[value] = parseInt(_) ? parseInt(_) : _
-            }
-            , ()=>{
-                return this.vals.editableVals[value]
-            }
-            , inputField)
-            accordionMenu(headerText, inputField, value, ()=>{
-                console.log(mainDiv[0].elt.scrollHeight + inputField.elt.scrollHeight);
-                mainDiv[0].elt.style.maxHeight = mainDiv[0].elt.scrollHeight + inputField.elt.scrollHeight
-            }
-            );
-            inputField.parent(mainDiv[0]);
-        }
+        this.addNewEditObj(this.vals.editableVals, mainDiv[0]);
     }
     toJson() {
         return {
@@ -191,16 +196,21 @@ class gameSprite extends Component {
 addComponent("gameScript", gameScript);
 addComponent("gameSprite", gameSprite);
 function removeNonNormal(obj) {
-const replacer = (key, value) => {
-    if(key === "p5") return undefined
-    if(key === "" || value instanceof p5.Vector) return value;
-    console.log(key,value.constructor.name, typeof value);
-  if (value.constructor.name !== "Object" && value.constructor.name !== "String" && value.constructor.name !== "Number" && value.constructor.name !== "Boolean" ) {
-    return undefined; // Ignore the property
-  }
-  return value; // Serialize the property as usual
-};
+    const replacer = (key,value)=>{
+        if (key === "p5")
+            return undefined
+        if (key === "" || value instanceof p5.Vector)
+            return value;
+        console.log(key, value.constructor.name, typeof value);
+        if (value.constructor.name !== "Object" && value.constructor.name !== "String" && value.constructor.name !== "Number" && value.constructor.name !== "Boolean") {
+            return undefined;
+            // Ignore the property
+        }
+        return value;
+        // Serialize the property as usual
+    }
+    ;
 
-const jsonString = JSON.stringify(obj, replacer);
+    const jsonString = JSON.stringify(obj, replacer);
     return JSON.parse(jsonString)
 }
