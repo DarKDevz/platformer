@@ -42,7 +42,7 @@ class gameScript extends Component {
         let _Run = {
             shown: new Proxy(_temp,{
                 set(target, key, value) {
-                    target[key] = tValue;
+                    target[key] = value;
                     let tValue = removeNonNormal(target);
                     console.log(value,removeNonNormal(target));
                     if (key === "valueDetected") {
