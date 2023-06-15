@@ -10,6 +10,15 @@ class GameObject {
         this.overrides = {};
         this.savedFuncs = {};
         this.newOverrides = {};
+        this.uuid = engine.generateUUID();
+        engine.uuidList[this.uuid] = this;
+    }
+    jsonComponents() {
+        let ret = [];
+        for(let comp of this.components) {
+            ret.push(comp.toJson());
+        }
+        return ret;
     }
     init() {
         

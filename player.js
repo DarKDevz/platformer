@@ -23,7 +23,7 @@ class Player {
         //controlller
         let overui = window['overUI'] !== undefined ? overUI : false;
         if (mouseIsPressed && !overui) {
-            console.log(overui)
+            //console.log(overui)
             this.shootTowards()
         }
         //Space
@@ -65,18 +65,18 @@ class Player {
         if (this.vel.x < 0.0001 && this.vel.x > 0) this.vel.x = 0;
         else if (this.vel.x > -0.0001 && this.vel.x < 0) this.vel.x = 0;
         this.pos.x += 1 * this.vel.x;
-        if (this.pos.y > levels[activeLevel].maxPos) {
+        if (this.pos.y >engine.getActiveScene().maxPos) {
             this.playerDeath();
         }
     }
     playerDeath() {
-        this.pos = levels[activeLevel].pos.copy();
+        this.pos =engine.getActiveScene().pos.copy();
         this.size = createVector(30, 70);
         this.vel = createVector(0, 0);
         this.old = createVector(0, 0);
     }
     collision(id) {
-        let t_box = boxes[id];
+        let t_box = engine.getActiveScene().boxes[id];
         if (t_box && t_box.isCollidable)
             return t_box.collision(this);
     }
@@ -88,7 +88,7 @@ class Player {
         return t_v;
     }
     yCollision(id) {
-        let t_box = boxes[id];
+        let t_box = engine.getActiveScene().boxes[id];
         let bpos = createVector(t_box.x, t_box.y)
         let bsize = createVector(t_box.width, t_box.height);
         let t_center = this.center(bsize, bpos);
@@ -107,7 +107,7 @@ class Player {
         }
     }
     xCollision(id) {
-        let t_box = boxes[id];
+        let t_box = engine.getActiveScene().boxes[id];
         let bpos = createVector(t_box.x, t_box.y);
         let bsize = createVector(t_box.width, t_box.height);
         let t_center = this.center(bsize, bpos);
@@ -125,7 +125,7 @@ class Player {
         }
     }
     onCollide(id) {
-        let t_box = boxes[id];
+        let t_box = engine.getActiveScene().boxes[id];
         if (!t_box) return;
         let bpos = createVector(t_box.oldX, t_box.oldY)
         let bsize = createVector(t_box.width, t_box.height);
@@ -139,21 +139,21 @@ class Player {
             x: cos(toMouse.heading()),
             y: sin(toMouse.heading())
         };
-        console.log(direction)
+        //console.log(direction)
         const currentTime = Date.now();
         const timeSinceLastShot = currentTime - this.lastShotTime;
 
         if (timeSinceLastShot >= this.shootingDelay) {
             let bullet = new Bullet(this.posCenter().x, this.posCenter().y, direction.x, direction.y);
-            levels[activeLevel].boxes.push(bullet);
-            levels[activeLevel].reloadBoxes();
+           engine.getActiveScene().boxes.push(bullet);
+           engine.getActiveScene().reloadBoxes();
             this.lastShotTime = currentTime;
         }
     }
     checkCollisions() {
         let found = false;
         let t_box_id;
-        for (t_box_id in boxes) {
+        for (t_box_id in engine.getActiveScene().boxes) {
             let c = this.collision(t_box_id);
             if (c) {
                 this.collidedId = t_box_id;

@@ -74,6 +74,7 @@ function uiElement(element) {
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
+    engine = new Engine();
     player = new Player();
     button = uiButton('Play', windowWidth / 2 - 45, 0);
 
@@ -135,11 +136,11 @@ function setup() {
     JsonMap(MapData);
 
     button.mousePressed(() => {
-        levels[activeLevel].loadLevel();
+       engine.getActiveScene().loadLevel();
         Playing = !Playing;
     });
 
-    lastScene = activeLevel;
+    lastScene = engine.activeScene;
     cameraPos = createVector(0, 0);
 }
 
@@ -150,66 +151,48 @@ function levelScreen() {
         t_info.remove();
     }
     if (levelMode) {
-        let LValues = levels[activeLevel].getLevelValues();
-        let LValueNames = levels[activeLevel].getLevelValueNames();
-        let LValueIndx = levels[activeLevel].getActualLevelValues();
+        let LValues =engine.getActiveScene().getLevelValues();
+        let LValueNames =engine.getActiveScene().getLevelValueNames();
+        let LValueIndx =engine.getActiveScene().getActualLevelValues();
         for (let i = 0; i < LValues.length; i += 1) {
             addMenuInput(LValueNames[i], (val) => {
                 let actValue = parseInt(val) ? parseInt(val) : val
-                levels[activeLevel][LValueIndx[i]] = actValue;
+               engine.getActiveScene()[LValueIndx[i]] = actValue;
                 LValues[i] = actValue;
             }, () => LValues[i])
         }
     }
 }
-let oldremove = removeObject;
-removeObject = function(id) {
-    selectedObjects = removeAndDecrease(selectedObjects, id);
-    return oldremove(...arguments);
-}
-
-function removeAndDecrease(arr, value) {
-    const index = arr.indexOf(value.toString());
-    if (index !== -1) {
-        arr.splice(index, 1);
-        // Remove the value from the array
-        for (let i = index; i < arr.length; i++) {
-            arr[i] = (parseInt(arr[i], 10) - 1).toString();
-            // Decrease subsequent values by 1
-        }
-    } else {
-        for (let i = 0; i < arr.length; i++) {
-            if (parseInt(arr[i], 10) > parseInt(value, 10)) {
-                arr[i] = (parseInt(arr[i], 10) - 1).toString();
-                // Decrease subsequent values by 1
-            }
-        }
-    }
-    return arr;
-}
 
 function removeMapObject() {
     for (let selectedId in selectedObjects) {
         let objId = selectedObjects[selectedId];
-        delete levels[activeLevel].boxes[objId];
+        removeObject(objId);
         delete selectedObjects[selectedId];
     }
     //filter empty
-    levels[activeLevel].boxes = getCurrentBoxes().filter((_) => {
+   engine.getActiveScene().boxes = getCurrentBoxes().filter((_) => {
         return _
     })
-    levels[activeLevel].reloadBoxes();
+   engine.getActiveScene().reloadBoxes();
     selectedObjects = selectedObjects.filter((_) => {
         return _
     })
 }
 
 function copyObject() {
+    for(let _ in selectedObjects) {
+        let objs = selectedObjects[_]
+        if(!engine.getfromUUID(objs)) {
+            selectedObjects.splice(_,1);
+        }
+    }
     copiedObjs = [];
     for (let objId of selectedObjects) {
         let copiedObj = {
-            vals: boxes[objId].getValues(),
-            type: boxes[objId].typeId
+            vals: engine.getfromUUID(objId).getValues(),
+            type: engine.getfromUUID(objId).typeId,
+            components: engine.getfromUUID(objId).jsonComponents()
         }
         copiedObjs.push(copiedObj)
     }
@@ -220,10 +203,15 @@ function pasteObjects() {
         let firstObjPos;
         for (let copiedObj of copiedObjs) {
             let _obj = (addObj(copiedObj.type, copiedObj.vals));
-            let index = levels[activeLevel].boxes.push(_obj);
+            console.log(copiedObj.components);
+            for(let component of copiedObj.components) {
+                console.log(component)
+                _obj.components.push(new componentList[component.name]({...component.params,obj:_obj}))
+            }
+            let index =engine.getActiveScene().boxes.push(_obj);
             index--;
-            obj = levels[activeLevel].boxes[index];
-            levels[activeLevel].boxes[index].clr = 50;
+            obj =engine.getActiveScene().boxes[index];
+           engine.getActiveScene().boxes[index].clr = 50;
             let offsetPosX = mouseCoords().x;
             let offsetPosY = mouseCoords().y;
             if (!firstObjPos)
@@ -232,19 +220,18 @@ function pasteObjects() {
                 offsetPosX -= firstObjPos[0] - obj.x;
                 offsetPosY -= firstObjPos[1] - obj.y;
             }
-            levels[activeLevel].reloadBoxes();
+           engine.getActiveScene().reloadBoxes();
             obj.offSet(offsetPosX, offsetPosY);
-            selectedObjects.push(index);
+            selectedObjects.push(obj.uuid);
         }
     }
     pasted = true;
 }
 
 function draw() {
-
     if (keyIsDown(17) && keyIsDown(86)) {
         pasteObjects();
-    } else {
+    }else {
         pasted = false;
     }
     clear();
@@ -254,21 +241,21 @@ function draw() {
         player.update();
     //Early Update
     if (!Paused)
-        levels[activeLevel].earlyUpdate();
+       engine.getActiveScene().earlyUpdate();
     if (Playing && !Paused)
         player.camera();
     else
         translate(cameraPos.x, cameraPos.y)
     if (Playing && !Paused)
         player.checkCollisions();
-    levels[activeLevel].display();
+   engine.getActiveScene().display();
     if (levelMode)
-        levels[activeLevel].customDraw();
+       engine.getActiveScene().customDraw();
     if (Playing)
         player.display();
     //Late Update
     if (!Paused)
-        levels[activeLevel].lateUpdate();
+       engine.getActiveScene().lateUpdate();
     /*-------------PLAYER AND LEVEL DRAWING-----------------*/
     //DRAW SELECT BOX
     if (selectBox[1]) {
@@ -285,9 +272,14 @@ function draw() {
         let diffY = mouseY - pmouseY
         if (selectedObjects.length !== 0) {
             for (t_box_id of selectedObjects) {
-                let t_box = boxes[t_box_id];
-                t_box.customDraw();
-                t_box.offSet(t_box.x += diffX, t_box.y += diffY, diffX, diffY);
+                let t_box = engine.getfromUUID(t_box_id);
+                
+                if(t_box) {
+                    t_box.customDraw();
+                    t_box.offSet(t_box.x += diffX, t_box.y += diffY, diffX, diffY);
+                }else {
+                    selectedObjects.splice(t_box_id,1);
+                }
             }
         } else {
             cameraPos.x += diffX;
@@ -300,17 +292,21 @@ function draw() {
         mouseUp();
     }
     //If switching scenes remove selected
-    if (lastScene != activeLevel) {
+    if (lastScene != engine.activeScene) {
         selectedObjects = [];
         for (let t_info of infoDivs) {
             t_info.remove();
         }
     }
-    lastScene = activeLevel;
+    lastScene = engine.activeScene;
 
     for (let t_box_id of selectedObjects) {
-        let t_box = boxes[t_box_id];
-        t_box.customDraw();
+        let t_box = engine.getfromUUID(t_box_id);
+        if(t_box){
+            t_box.customDraw();
+        }else {
+            selectedObjects.splice(t_box_id,1);
+        }
     }
     //Disallow selecting if Playing
     //if(Playing  && !Paused) selectBox = [];
@@ -337,19 +333,21 @@ function releaseSelectBox() {
                 classParameters.push(parseInt(resp) ? parseInt(resp) : resp);
             }
         }
-        levels[activeLevel].boxes.push(new classes[addSelect.value()](...classParameters));
-        levels[activeLevel].reloadBoxes();
+       engine.getActiveScene().boxes.push(new classes[addSelect.value()](...classParameters));
+       engine.getActiveScene().reloadBoxes();
     }
 }
 
 function OpenEditMenu() {
+    //remove any non removed objs
     lastInfo = info;
     info = [];
     let lastIndexes = infoIndexes;
     infoIndexes = [];
     for (let objectId of selectedObjects) {
-        let t_box = boxes[objectId];
+        let t_box = engine.getfromUUID(objectId);
         infoIndexes.push(objectId);
+        if(t_box) {
         for (t_val_id in t_box.getValues()) {
             info.push(objectId);
             info.push(t_box.getValuesName()[t_val_id])
@@ -369,6 +367,7 @@ function OpenEditMenu() {
         info.push("CustomButton");
         info.push(0);
         info.push(0);
+        }
     }
     if ((lastInfo.length !== info.length))
         console.log(lastInfo.length - info.length, lastIndexes.length - infoIndexes.length);
@@ -393,15 +392,15 @@ function OpenEditMenu() {
     }
     console.table(info);
     for (let i = 0; i < info.length; i += 4) {
-        console.log(info[i]);
+        //console.log(info[i]);
         if (info[i + 1] === "noMenu" || info[i + 1] === "component" || info[i + 1] === "CustomButton") {
-            console.log("works");
+            //console.log("works");
             if (info[i + 1] === "noMenu") { // if (boxes[info[i]].components[info[i + 2]]) {
                 //     boxes[info[i]].components[info[i + 2]].MenuEdit('sideMenu');
                 // }
             } else if (info[i + 1] === "component") {
-                if (boxes[info[i]].components[info[i + 2]]) {
-                    boxes[info[i]].components[info[i + 2]].MenuEdit('sideMenu');
+                if (engine.getfromUUID(info[i]).components[info[i + 2]]) {
+                    engine.getfromUUID(info[i]).components[info[i + 2]].MenuEdit('sideMenu');
                 }
             } else {
                 let divHolder = createDiv();
@@ -423,7 +422,7 @@ function OpenEditMenu() {
         } else {
             addMenuInput(info[i + 1], (val) => {
                 let actValue = parseInt(val) ? parseInt(val) : val
-                boxes[info[i]][info[i + 3]] = actValue;
+                engine.getfromUUID(info[i])[info[i + 3]] = actValue;
                 info[i + 2] = actValue;
             }, () => info[i + 2])
         }
@@ -577,11 +576,13 @@ function mouseUp() {
     if (makingNew)
         return newBox = rect1;
     selectedObjects = [];
-    for (t_box_id in boxes) {
-        let t_box = boxes[t_box_id];
+    for (t_box_id in engine.getActiveScene().boxes) {
+        let t_box = engine.getActiveScene().boxes[t_box_id];
         let c = t_box.collision(rect1, false);
-        if (c)
-            selectedObjects.push(t_box_id);
+        if (c) {
+            selectedObjects.push(t_box.uuid);
+            //console.log(t_box.uuid);
+        }
         t_box.clr = c * 50
             //console.log(c);
     }

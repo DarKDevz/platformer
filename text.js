@@ -1,6 +1,6 @@
 class Text extends GameObject {
     constructor(x, y, text) {
-        super(x, y);
+        super(x, y,"text");
         this.text = text;
         this.clr = 0;
         this.width = textWidth(this.text);

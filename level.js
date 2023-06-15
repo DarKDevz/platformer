@@ -1,14 +1,103 @@
-var levels = [];
-var activeLevel;
-
+var engine;
+// var engine.scene = [];
+// var engine.activeScene;
+//var engine = new Engine();
+//Support for Older Projects
+let temp = {};
+var levels = new Proxy(temp,{
+    set(target, key, value) {
+        engine.scene[key] = value;
+        console.error("level variable is deprecated, use engine.scene instead");
+        return true;
+    },
+    get(target, key, receiver) {
+        console.error("level variable is deprecated, use engine.scene instead");
+        return engine.scene[key];
+    }
+})
+var boxes = new Proxy(temp,{
+    set(target, key, value) {
+        this.getActiveScene().boxes[key] = value;
+        console.error("Boxes variable is deprecated, use engine.scene instead");
+        return true;
+    },
+    get(target, key, receiver) {
+        console.error("Boxes variable is deprecated, use engine.scene instead");
+        return this.getActiveScene().boxes[key];
+    }
+})
+Object.defineProperty(window,"activeLevel",{
+    set(value) {
+        engine.activeScene = value;
+        console.error("activeLevel variable is deprecated, use engine.activeScene instead");
+        return true;
+    },
+    get() {
+        console.error("activeLevel variable is deprecated, use engine.activeScene instead");
+        return engine.activeScene;
+    }
+})
+class Engine {
+    constructor() {
+        this.scene = [];
+        this.activeScene;
+        this.files = {};
+        this.uuidList = {};
+        this.hasUUID = false;
+        this.assignedUUID = 0;
+    }
+    assignUUID(UUID) {
+        this.hasUUID = true;
+        this.assignedUUID = UUID;
+    }
+    getfromUUID(UUID) {
+        return this.uuidList[UUID];
+    }
+    getActiveScene() {
+        return this.scene[this.activeScene];
+    }
+    changeUUID(ogUUId,newUUID) {
+        let ogVal = this.uuidList[ogUUId];
+        delete this.uuidList[ogUUId];
+        this.uuidList[newUUID] = ogVal;
+        return this.uuidList[newUUID];
+    }
+    generateUUID() {
+        if(this.hasUUID) {
+            this.hasUUID = false;
+            return this.assignedUUID;
+        }
+        let UUID = "0x"+(Math.random()*99999999999999999).toString(16);
+        let stack = 0;
+        while(this.uuidList[UUID]) {
+            stack++;
+            let UUID = "0x"+(Math.random()*99999999999999999).toString(16);
+            if(stack>=99999999) {
+                throw new Error("Stack exceeded! Math.random is broken or uuid list is filled");
+            }
+        }
+        return UUID;
+    }
+}
 function getCurrentBoxes() {
-    return levels[activeLevel].boxes
+    return engine.getActiveScene().boxes
 }
 
 function removeObject(objId) {
-    delete levels[activeLevel].boxes[objId];
-    levels[activeLevel].boxes = getCurrentBoxes().filter(Boolean);
-    levels[activeLevel].reloadBoxes();
+    if(typeof objId === "string" && objId.startsWith("0x")) {
+        //it's passing an UUID, delete accordingly
+        let obj = engine.uuidList[objId];
+        let sceneId = engine.getActiveScene().boxes.indexOf(obj)
+        delete engine.uuidList[objId];
+        delete engine.getActiveScene().boxes[sceneId]
+        engine.getActiveScene().boxes = getCurrentBoxes().filter(Boolean);
+    }else {
+    let obj = engine.getActiveScene().boxes[objId]
+    if(!obj) return;
+    delete engine.uuidList[obj.uuid];
+    delete engine.getActiveScene().boxes[objId];
+    engine.getActiveScene().boxes = getCurrentBoxes().filter(Boolean);
+    }
 }
 
 function addObj(ind, arr) {
@@ -26,9 +115,19 @@ function addObj(ind, arr) {
 
 function JsonMap(file) {
     let t_levels = []
-    levels = [];
-    boxes = [];
+    engine = new Engine();
     var newLevels = JSON.parse(file.data)
+    if(newLevels.file) {
+        console.warn("funzionaasda");
+        for(let file of newLevels.file) {
+            for(let UUID in file) {
+                engine.assignUUID(UUID);
+                console.warn(file[UUID])
+                addGameFile(file[UUID]);
+            }
+        }
+        delete newLevels.file;
+    }
     for (let level_id in newLevels) {
         console.log(level_id);
         if (!level_id.includes("l") && !level_id.includes('c')) {
@@ -51,10 +150,18 @@ function JsonMap(file) {
                 //console.log(_components);
                 for (let BoxId in ObjwithComponents) {
                     let components = ObjwithComponents[BoxId];
-                    console.log(components, BoxId);
+                    if(BoxId==="UUID") {
+                        for(let box in components) {
+                            let ogUUID = engine.scene[level_id.slice(0, -1)].boxes[box].uuid;
+                            engine.changeUUID(ogUUID,components[box])
+                        }
+                        //console.warn("UUID found:",engine.scene[level_id.slice(0, -1)].boxes);
+                    }else if(BoxId==="file") {
+                        console.warn(components);
+                    }else {
                     let _componentList = [];
                     for (let component of components) {
-                        var level = levels[level_id.slice(0, -1)];
+                        var level = engine.scene[level_id.slice(0, -1)];
                         var box = level.boxes[BoxId];
                         var componentConstructor = componentList[component.name];
                         var paramObj = {}
@@ -70,17 +177,18 @@ function JsonMap(file) {
                     var box = level.boxes[BoxId];
                     box.components = _componentList;
                 }
+                }
             }
             console.log(newLevels[level_id]);
         }
     }
 
-    levels[0].loadLevel();
+    engine.scene[0].loadLevel();
 }
 class Level {
     constructor(arr, pos, maxPos) {
         this.boxes = arr;
-        this.ind = levels.length;
+        this.ind = engine.scene.length;
         this.pos = pos;
         this.maxPos = maxPos;
     }
@@ -139,10 +247,10 @@ class Level {
         player.collidedId = null;
         player.vel = createVector(0, 0);
         this.reloadBoxes();
-        activeLevel = this.ind;
+        engine.activeScene = this.ind;
     }
     reloadBoxes() {
-        boxes = this.boxes;
+        //boxes = this.boxes;
     }
     componentsJson() {
         const usableBoxes = this.boxes.filter((box) => box.components.length !== 0);
@@ -173,19 +281,27 @@ class Level {
 function MapJson() {
     let mapData = {};
     mapData = {};
-    for (let level of levels) {
+    let fileList = []
+    for(let fileId in engine.files) {
+        let file = engine.files[fileId]
+        let obj = {};
+        obj[fileId] =  file.data;
+        fileList.push(obj);
+    }
+    mapData["file"] = fileList;
+    for (let level of engine.scene) {
         mapData[level.ind] = level.toJSON()
     }
-    for (let level of levels) {
+    for (let level of engine.scene) {
         mapData[level.ind + "l"] = level.extrasJson()
     }
-    for (let level of levels) {
+    for (let level of engine.scene) {
         mapData[level.ind + "c"] = level.componentsJson()
     }
     return JSON.stringify(mapData);
 }
 function addLevel(arr, pos, maxPos = 500) {
     let _level = new Level(arr,pos,maxPos);
-    levels.push(_level)
+    engine.scene.push(_level)
     return _level;
 }

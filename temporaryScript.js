@@ -13,7 +13,7 @@ function overrideLateUpdate() {
             this.x = lerp(this.x, targetX, speed);
             this.y = lerp(this.y, targetY, speed);
             if (this.health <= 0) {
-                removeObject(levels[activeLevel].boxes.indexOf(this));
+                removeObject(engine.getActiveScene().boxes.indexOf(this));
                 managerObject.enemyMade = false;
             }
             managerObject.sprite.resize(player.size.x, player.size.y);
@@ -25,8 +25,8 @@ function overrideLateUpdate() {
     enemy.typeId = undefined;
     enemy.isShootable = true;
     enemy.health = 100;
-    levels[activeLevel].boxes.push(enemy);
-    levels[activeLevel].reloadBoxes();
+   engine.getActiveScene().boxes.push(enemy);
+   engine.getActiveScene().reloadBoxes();
 }
 if (!this.enemyMade) {
     overrideLateUpdate();

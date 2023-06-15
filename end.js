@@ -15,8 +15,8 @@ class End extends Box{
 	}
 	earlyUpdate() {
 		if(this.collision(player))  {
-		if(levels[activeLevel + 1] !== undefined)
-			levels[activeLevel + 1].loadLevel();
+		if( engine.scene[engine.activeScene + 1] !== undefined)
+			 engine.scene[engine.activeScene + 1].loadLevel();
 		else{
 			addLevel([],createVector(0,-500)).loadLevel();
 		}

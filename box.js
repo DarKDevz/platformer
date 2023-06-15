@@ -1,4 +1,3 @@
-var boxes = [];
 class Box extends GameObject {
     constructor(x, y, w, h) {
         super(x, y, "Box");

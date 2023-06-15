@@ -4,9 +4,9 @@ class Interactive extends GameObject {
         this.r = radius;
         this.callback = callback;
         this.components = [];
-        let gScript = new gameScript({ obj: this, fn: callback });
-        this.components.push(gScript);
-        gScript.initialize(callback);
+        /*let gScript = new gameScript({ obj: this, fn: callback });
+        this.components.push(gScript);*/
+        //gScript.initialize(callback);
         this.typeId = 5;
     }
     getValuesName() {

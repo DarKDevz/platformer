@@ -13,12 +13,12 @@ function draw() {
 	//Update
 	player.update();
 	//Early Update
-	levels[activeLevel].earlyUpdate();
+	engine.getActiveScene().earlyUpdate();
 	player.camera();
 	player.checkCollisions();
-	levels[activeLevel].display();
+	engine.getActiveScene().display();
 	player.display();
 	//Late Update
-	levels[activeLevel].lateUpdate();
+	engine.getActiveScene().lateUpdate();
 	//rect(-1,375,800,500)
 }
