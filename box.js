@@ -21,11 +21,12 @@ class Box extends GameObject {
     getActualValuesName() {
         return super.getActualValuesName().concat(["width", "height"]);
     }
-    display() {
-        this.oldX = this.x;
-        this.oldY = this.y;
+    draw() {
         fill(this.clr);
         rect(this.x, this.y, this.width, this.height);
+    }
+    display() {
+        this.draw()
         this.update();
     }
     collision(obj) {
@@ -51,6 +52,9 @@ class Box extends GameObject {
             line(this.x + this.width / 2, this.y + this.height / 2, this.x + this.width / 2, this.y + this.height / 2 - 30);
             stroke(0);
         }
-        //	update() {}
+    update() {
+        this.oldX = this.x;
+        this.oldY = this.y;
+    }
     onCollide() {}
 }

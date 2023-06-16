@@ -40,13 +40,21 @@ var makingNew = false,
     infoDivsHolder = [],
     infoIndexes = [],
     addSelect = null,
-    id = null;
+    id = null,
+    ContentBrowserPanel = {
+        set files(value) { return engine.files = value},
+        get files() {return engine.files},
+        Divs : []
+    },
+    OldFiles = [];
 
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
     pauseButton.position(windowWidth / 2, 0);
     button.position(windowWidth / 2 - 45, 0);
     sideMenu.position(windowWidth - 300, 0);
+    ContentBrowserPanel.HUD.size(windowWidth,windowHeight/4);
+    ContentBrowserPanel.HUD.position(0,windowHeight-windowHeight/4);
 }
 
 function saveMap() {
@@ -115,7 +123,11 @@ function setup() {
     sideMenu.position(windowWidth - sideMenu.size().width, 0);
     sideMenu.id('sideMenu');
     uiElement(sideMenu);
-
+    ContentBrowserPanel.HUD = createDiv();
+    ContentBrowserPanel.HUD.size(windowWidth,windowHeight/4);
+    createDiv('ContentBrowserPanel').parent(ContentBrowserPanel.HUD)
+    ContentBrowserPanel.HUD.style("background-color: rgba(0, 0, 0, 0.25);overflow:auto;");
+    ContentBrowserPanel.HUD.position(0,windowHeight-windowHeight/4);
     actionButtons = createDiv();
     actionButtons.id('actionMenu');
     actionButtons.parent('sideMenu');
@@ -317,8 +329,24 @@ function draw() {
     if (selectedObjects.length != 0) {
         OpenEditMenu()
     }
-}
+    let newFile = Object.keys(engine.files);
+    if(Array.prototype.equals) {
+        if(newFile.equals(OldFiles)) {
 
+    }else {
+        console.warn("added a file!/ changed");
+        OldFiles = newFile;
+        removeOldContent()
+        readTypeAndName()
+    }
+}
+}
+function removeOldContent() {
+    for(let i of ContentBrowserPanel.Divs) {
+        i.remove();
+    }
+    ContentBrowserPanel.Divs = [];
+}
 function releaseSelectBox() {
     selectBox = [];
     if (makingNew) {
@@ -411,8 +439,8 @@ function OpenEditMenu() {
                 ComponentSelect.parent(divHolder);
                 let addButton = createButton("Add");
                 addButton.mousePressed(() => {
-                    boxes[info[i]].components.push(new componentList[ComponentSelect.value()]({
-                        obj: boxes[info[i]]
+                    engine.getfromUUID(info[i]).components.push(new componentList[ComponentSelect.value()]({
+                        obj: engine.getfromUUID(info[i])
                     }))
                 })
                 addButton.parent(divHolder)
@@ -425,6 +453,55 @@ function OpenEditMenu() {
                 engine.getfromUUID(info[i])[info[i + 3]] = actValue;
                 info[i + 2] = actValue;
             }, () => info[i + 2])
+        }
+    }
+}
+function readTypeAndName() {
+    for(let nameOfFile in ContentBrowserPanel.files) {
+        let _file = ContentBrowserPanel.files[nameOfFile];
+        let typeOfFile = _file.type;
+        console.warn(nameOfFile+typeOfFile);
+        if(typeOfFile === ".js") {
+            let _get = ()=>{return ContentBrowserPanel.files[nameOfFile].data}
+            let set = (value)=>{
+                //console.warn(ContentBrowserPanel.files[nameOfFile].whoUses)
+                for(let ObjId in _file.whoUses) {
+                    let script = _file.whoUses[ObjId];
+                    script.fn = value;
+                }
+            };
+            let inp = createButton(nameOfFile+typeOfFile).parent(ContentBrowserPanel.HUD);
+            inp.mousePressed(() => {
+                var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get().toString()), "Popup Window", "width=400,height=300");
+                window.receivePopupText = (text) => {
+                console.warn(text);
+                _file.data = text;
+                set(text);
+                _get = () => text;
+                };
+            });
+            inp.size(140,140);
+            ContentBrowserPanel.Divs.push(inp);
+        }else if(typeOfFile === ".img") {
+            let inp = createButton(nameOfFile+typeOfFile).parent(ContentBrowserPanel.HUD);
+            let _get = ()=>{return ContentBrowserPanel.files[nameOfFile].data}
+            let set = (value)=>{
+                //console.warn(ContentBrowserPanel.files[nameOfFile].whoUses)
+                for(let ObjId in _file.whoUses) {
+                    let script = _file.whoUses[ObjId];
+                    script.src = value;
+                }
+            };
+            inp.mousePressed(() => {
+                let popup = window.open('imagePopup.html', '_blank', 'width=400,height=400');
+                window.jsonImage = (text) => {
+                  console.warn(text);
+                  _file.data = text.imageb64;
+                  _get = set(text);
+                };
+              });
+              inp.size(140,140);
+              ContentBrowserPanel.Divs.push(inp);
         }
     }
 }

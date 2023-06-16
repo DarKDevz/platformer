@@ -34,8 +34,6 @@ class movingPlatform extends Box{
 		ground = this.collision(t_player);
 		if(ground && !player.colliding) {player.pos.x -= (this.oldX - this.x)}
 	}
-	update() {
-	}
 	lateUpdate() {
 	if(this.x+this.width < this.x2 && this.direction == "r"){this.x += 3;
 	}

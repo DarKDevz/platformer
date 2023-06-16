@@ -1,35 +1,54 @@
-let managerObject = this;
-
-function overrideLateUpdate() {
-    class OverriddenEnemy extends Enemy {
-        lateUpdate() {
-            textSize(16);
-            fill(0);
-            text(this.health, this.x, this.y);
-            let speed = 0.025;
-            let playerPos = player.pos;
-            let targetX = playerPos.x + 100;
-            let targetY = playerPos.y;
-            this.x = lerp(this.x, targetX, speed);
-            this.y = lerp(this.y, targetY, speed);
-            if (this.health <= 0) {
-                removeObject(engine.getActiveScene().boxes.indexOf(this));
-                managerObject.enemyMade = false;
-            }
-            managerObject.sprite.resize(player.size.x, player.size.y);
-            image(managerObject.sprite, this.x, this.y);
-            super.lateUpdate();
+this.isCollidable = false;
+this.listOfBoxes = {};
+this.lastPress = false;
+this.draw = function() {
+  return 1;
+};
+this.update = function() {
+  if (mouseIsPressed) {
+      let roundedX = mouseX + player.cameraPos.x - 32;
+      roundedX = Math.round(roundedX / 64) * 64;
+      let roundedY = mouseY + player.cameraPos.y - 32;
+      roundedY = Math.round(roundedY / 64) * 64;
+      if (this.listOfBoxes[roundedX + ',' + roundedY]) {
+        /*Block has already been added*/
+        if(!this.lastPress) {
+        this.listOfBoxes[roundedX + ',' + roundedY].isCollidable = true;
+        this.listOfBoxes[roundedX + ',' + roundedY].shown.index += 1;
+        if (this.listOfBoxes[roundedX + ',' + roundedY].shown.index >= 16) {
+          this.listOfBoxes[roundedX + ',' + roundedY].shown.index = 4;
+        }else if(this.listOfBoxes[roundedX + ',' + roundedY].shown.index == 15){
+          this.listOfBoxes[roundedX + ',' + roundedY].isCollidable = false;
+        };
         }
+      } else {
+        let box = new Box(roundedX, roundedY, 64, 64);
+        this.listOfBoxes[roundedX + ',' + roundedY] = box;
+        engine.getActiveScene().boxes.push(box);
+        console.warn(box);
+        let params = {
+          fileUUID: '0xa428cdb409c950',
+          vals: {
+            index: 12
+          }
+        };
+        box.components.push(new componentList['gameScript']({
+          ...params,
+          obj: box
+        }));
+        params = {
+          fileUUID: '0xabe79e914218f8',
+          src: {
+            width: 256,
+            height: 256
+          }
+        };
+        box.components.push(new componentList['gameSprite']({
+          ...params,
+          obj: box
+        }));
+        box.typeId = undefined;
+      }
     }
-    let enemy = new OverriddenEnemy(player.pos.x + 100, player.pos.y, player.size.x, player.size.y);
-    enemy.typeId = undefined;
-    enemy.isShootable = true;
-    enemy.health = 100;
-   engine.getActiveScene().boxes.push(enemy);
-   engine.getActiveScene().reloadBoxes();
+    this.lastPress = mouseIsPressed;
 }
-if (!this.enemyMade) {
-    overrideLateUpdate();
-    this.components[1].reloadImage()
-}
-this.enemyMade = true;

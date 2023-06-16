@@ -123,7 +123,11 @@ function JsonMap(file) {
             for(let UUID in file) {
                 engine.assignUUID(UUID);
                 console.warn(file[UUID])
-                addGameFile(file[UUID]);
+                if(typeof file[UUID] === "object") {
+                    addGameFile(file[UUID].data,file[UUID].type);
+                }else {
+                    addGameFile(file[UUID]);
+                }
             }
         }
         delete newLevels.file;
@@ -253,7 +257,7 @@ class Level {
         //boxes = this.boxes;
     }
     componentsJson() {
-        const usableBoxes = this.boxes.filter((box) => box.components.length !== 0);
+        let usableBoxes = this.boxes.filter((box) => (box.components.length !== 0)&&(box.typeId !== undefined));
         const boxVals = usableBoxes.map((t_box) => {
             let _components = t_box.components;
             console.log(this.boxes.indexOf(t_box))
@@ -285,7 +289,7 @@ function MapJson() {
     for(let fileId in engine.files) {
         let file = engine.files[fileId]
         let obj = {};
-        obj[fileId] =  file.data;
+        obj[fileId] =  {data:file.data.replaceAll('"',"'"),type:file.type};
         fileList.push(obj);
     }
     mapData["file"] = fileList;

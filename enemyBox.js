@@ -7,9 +7,7 @@ class Enemy extends Box{
 	getClassName() {
 	return "Enemy"
 	}
-	display() {
-		this.oldX = this.x;
-		this.oldY = this.y;
+	draw() {
 		fill(255,0,0);
 		rect(this.x,this.y,this.width ,this.height)
 	}

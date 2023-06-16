@@ -26,54 +26,6 @@ class GameObject {
     getClassName() {
         return "GameObject"
     }
-    set script(source) {
-        // var this.id = 0;
-        // for (let componentId in this.components) {
-        //     let component = this.components[componentId];
-        //     console.log(component);
-        //     if (component._src && component._src === source) {
-        //         console.log("found it", componentId);
-        //         this.id = componentId;
-        //     }
-        // }
-        // console.log(this.id);
-        // this.newOverrides = {};
-        // console.log(this.components[this.id]);
-        // //this.components[this.id].evalValues(source);
-        // (new Function(source)).call(this.newOverrides);
-        // if (this.savedFuncs[this.id] === undefined) this.savedFuncs[this.id] = {}
-        // this.overrides[this.id] = this.newOverrides;
-        // for (let i in this.overrides[this.id]) {
-        //     console.log(i);
-        //     //check if the overriden value even exists and if we want to replace with a function
-        //     if (this[i] !== undefined && typeof this.overrides[this.id][i] === "function") {
-        //         if (this.savedFuncs[this.id][i] === undefined) {
-        //             this.savedFuncs[this.id][i] = this[i];
-        //         }
-        //         this[i] = function() {
-        //             let shouldSkip = false;
-        //             if (this.overrides[this.id][i] !== undefined) {
-        //                 if (this.overrides[this.id][i].bind(this)(...arguments) === 1) {
-        //                     shouldSkip = true;
-        //                 }
-        //             } else {
-        //                 //script has been deleted
-        //                 this[i] = this.savedFuncs[this.id][i].bind(this)
-        //             }
-        //             if (!shouldSkip) {
-        //                 this.savedFuncs[this.id][i].call(this, ...arguments);
-        //             }
-        //         }
-        //         console.log(this.overrides[this.id][i]);
-        //     } else {
-        //         this[i] = this[this.overrides];
-        //     }
-        // }
-        // console.log(this.overrides);
-    }
-    get script() {
-        throw new Error("You shouldn't get it from here")
-    }
     offSet(x, y) {
         this.x = x;
         this.y = y;

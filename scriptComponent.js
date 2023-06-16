@@ -1,6 +1,6 @@
 window['test'] = [];
 class gameScript extends Component {
-    constructor({obj={}, fn='', vals={}}) {
+    constructor({obj={}, fn='', vals={},fileUUID=''}) {
         super("gameScript");
         this.ownObject = obj;
         let temp = {}
@@ -55,7 +55,16 @@ class gameScript extends Component {
         this.overrides = {};
         this.savedFuncs = {};
         this.newOverrides = {};
-        this.fn = fn;
+        if(fileUUID!=='') {
+            this.file = engine.files[fileUUID];
+            this.fn = this.file.data
+            this.file.type = ".js";
+            this.file.addUser(this,obj.uuid);
+        }else {
+            this.file = addGameFile(fn,'.js');
+            this.fn = this.file.data;
+            this.file.addUser(this,obj.uuid);
+        }
     }
     updateValues() {
         for (let key in this.ownObject.shown) {
@@ -165,7 +174,16 @@ class gameScript extends Component {
         console.log(parent);
         let mainDiv = addEditableScript("function", (val)=>{
             let actValue = val;
-            this.fn = actValue;
+            //Avoid changing all of the files and instead just change the singular script
+            delete this.file.whoUses[this.ownObject.uuid];
+            if(Object.keys(this.file.whoUses).length == 0) {
+                //If no one uses it delete it
+                //alert("empty script");
+                delete engine.files[this.file.UUID]
+            }
+            this.file = addGameFile(actValue,'.js');
+            this.file.addUser(this,this.ownObject.uuid);
+            this.fn = this.file.data;
             return actValue;
         }
         , ()=>this.fn, parent);
@@ -175,7 +193,7 @@ class gameScript extends Component {
         return {
             name: this.componentName,
             params: {
-                fn: this.fn,
+                fileUUID: this.file.UUID,
                 vals: this.vals.editableVals
             }
         };
@@ -186,13 +204,18 @@ class gameSprite extends Component {
         super("gameSprite");
         if(fileUUID!=='') {
             this.fileData = engine.files[fileUUID];
+            this.fileData.type = ".img";
+            this.fileData.addUser(this,obj.uuid);
         }else {
             //Support for Old Loading Images
-            this.fileData = addGameFile(src.imageb64);
+            this.fileData = addGameFile(src.imageb64,".img");
+            this.fileData.addUser(this,obj.uuid);
         }
         this.ownObject = obj;
         console.log(src);
-
+        if(src.imageb64) {
+            delete src.imageb64;
+        }
         this._src = src;
         this.src = src;
         //engine.assignUUID("Image File");
@@ -201,9 +224,13 @@ class gameSprite extends Component {
     set src(value) {
         console.log("changed");
         console.warn("the src has been set", value);
-        if(value.imageb64)this.fileData.data = value.imageb64;
-        delete value.imageb64;
-        return this._src = value;
+        //delete value.imageb64;
+        this._src = {...value};
+        this._src.imageb64 = undefined;
+        if(this.ownObject.sprite) {
+            this.reloadImage();
+        }
+        return this._src;
     }
     get src() {
         return this._src
@@ -215,6 +242,11 @@ class gameSprite extends Component {
             let actValue = val;
             console.log(val);
             this.src = actValue;
+            if(val.imageb64){
+                delete this.fileData.whoUses[this.ownObject.uuid];
+                this.fileData = addGameFile(value.imageb64,".img")
+                this.fileData.addUser(this,this.ownObject.uuid);
+            }
             return actValue;
         }
         , this.src, parent)
@@ -247,12 +279,17 @@ class gameSprite extends Component {
     }
 }
 class gameFile extends Component {
-    constructor(data,UUID) {
+    constructor(data,UUID,type) {
         super("gameFile");
         this.UUID = UUID;
+        this.type = type;
         console.warn(data);
         this.data = data.toString();
         engine.files[UUID] = this;
+        this.whoUses = {};
+    }
+    addUser(obj,UUID) {
+        this.whoUses[UUID] = obj;
     }
     get File() {
         return this.data;
@@ -271,13 +308,13 @@ function checkifexists(data) {
     }
     return false;
 }
-function addGameFile(data) {
+function addGameFile(data,type) {
     let fileexists = checkifexists(data)
     if(fileexists) {
         return fileexists;
     }
     let fUUID = engine.generateUUID();
-    fileexists = new gameFile(data,fUUID)
+    fileexists = new gameFile(data,fUUID,type)
     //alert(fileexists.data);
     return fileexists;
 }
