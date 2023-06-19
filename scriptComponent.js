@@ -331,16 +331,13 @@ class gameSprite extends Component {
     reloadImage() {
         let _img = this.src;
         console.log(_img);
-        if(this.fileData.customVal) {
-            var _sprite = img;
-
+        //Check if file has already loaded image, then get reference
+        if(this.fileData.customData!==undefined) {
+            var _sprite = this.fileData.customData;
         }else {
-            let img = loadImage("data:image/png;base64," + this.fileData.data.toString());
-            this.fileData.customVal = img;
-
-        var _sprite = img
+            var _sprite = loadImage("data:image/png;base64," + this.fileData.data.toString());
+            this.fileData.customData = _sprite;
         }
-
         _sprite.width = _img.width;
         _sprite.height = _img.height;
         this.ownObject.sprite = _sprite;
@@ -364,8 +361,8 @@ class gameSprite extends Component {
 class gameFile extends Component {
     constructor(data,UUID,type) {
         super("gameFile");
+        this.customData = undefined;
         this.UUID = UUID;
-        this.customVal
         this.type = type;
         console.warn(data);
         this.data = data.toString();

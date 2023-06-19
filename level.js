@@ -160,18 +160,10 @@ function addObj(ind, arr) {
 
     return new(objectMap[ind])(...arr);
 }
-
-function JsonMap(file) {
-    let t_levels = []
-    if(!(engine instanceof Engine)) {
-        console.error("engine hasn't been initialized in setup()")
-    }
-    let cList = engine.componentList;
-    engine = new Engine();
-    engine.componentList = cList;
-    var newLevels = JSON.parse(file.data)
+function ScenesfromObject(levelsObject) {
+    let t_levels = [];
+    var newLevels = levelsObject;
     if(newLevels.file) {
-        console.warn("funzionaasda");
         for(let file of newLevels.file) {
             for(let UUID in file) {
                 engine.assignUUID(UUID);
@@ -242,6 +234,15 @@ function JsonMap(file) {
 
     engine.scene[0].loadLevel();
 }
+function JsonMap(file) {
+    if(!(engine instanceof Engine)) {
+        console.error("engine hasn't been initialized in setup()")
+    }
+    let cList = engine.componentList;
+    engine = new Engine();
+    engine.componentList = cList;
+    ScenesfromObject(JSON.parse(file.data))
+}
 class Level {
     constructor(arr, pos, maxPos) {
         this.boxes = arr;
@@ -249,7 +250,7 @@ class Level {
         this.pos = pos;
         this.maxPos = maxPos;
     }
-    customDraw(shouldRun) {
+    customDraw(shouldRun = true) {
         if(!shouldRun) return 1;
         stroke(0, 0, 255);
         line(this.pos.x, this.pos.y, this.pos.x + 25, this.pos.y);
@@ -264,13 +265,13 @@ class Level {
             t_box.display(OnlyDraw);
         }
     }
-    lateUpdate(shouldRun) {
+    lateUpdate(shouldRun = true) {
         if(!shouldRun) return 1;
         for (let t_box of this.boxes) {
             t_box.lateUpdate();
         }
     }
-    earlyUpdate(shouldRun) {
+    earlyUpdate(shouldRun = true) {
         if(!shouldRun) return 1;
         for (let t_box of this.boxes) {
             t_box.earlyUpdate();

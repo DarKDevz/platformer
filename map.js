@@ -6,6 +6,7 @@ function windowResized() {
 function setup() {
     //Initialize Game things
     createCanvas(windowWidth, windowHeight);
+    noSmooth();
     engine = new Engine();
     player = new Player();
     //Initialize Editor things

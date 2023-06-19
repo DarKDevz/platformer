@@ -14,7 +14,7 @@ class Player {
         this.shootingDelay = 300; // Delay between shots in milliseconds
         this.lastShotTime = 0; // Time of the last shot in milliseconds
     }
-    display(shouldRun) {
+    display(shouldRun = true) {
         if(!shouldRun) return 1;
         fill(0)
         rect(this.pos.x, this.pos.y, this.size.x, this.size.y);
@@ -175,7 +175,7 @@ class Player {
     }
     camera() {
         let pos = this.posCenter();
-        this.cameraPos = createVector(lerp(this.cameraPos.x, pos.x - width / 2, .05), lerp(this.cameraPos.y, pos.y - height / 2, .05));
+        this.cameraPos = createVector(lerp(this.cameraPos.x, pos.x - width / 2, .25), lerp(this.cameraPos.y, pos.y - height / 2, .25));
         resetMatrix();
         translate(-this.cameraPos.x, -this.cameraPos.y);
 
