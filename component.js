@@ -1,4 +1,4 @@
-var componentList = {};
+var engine = {componentList:{}};
 class Component {
     constructor(name) {
         this.componentName = name;
@@ -19,5 +19,5 @@ class Component {
 }
 
 function addComponent(name, componentClass) {
-    return componentList[name] = componentClass;
+    return engine.componentList[name] = componentClass;
 }

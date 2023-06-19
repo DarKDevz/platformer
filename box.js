@@ -25,9 +25,9 @@ class Box extends GameObject {
         fill(this.clr);
         rect(this.x, this.y, this.width, this.height);
     }
-    display() {
+    display(OnlyDraw) {
         this.draw()
-        this.update();
+        if(!OnlyDraw)this.update();
     }
     collision(obj) {
         const { x, y, width, height, pos, size } = obj;

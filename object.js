@@ -11,6 +11,7 @@ class GameObject {
         this.savedFuncs = {};
         this.newOverrides = {};
         this.uuid = engine.generateUUID();
+        this.sprites = [];
         engine.uuidList[this.uuid] = this;
     }
     jsonComponents() {

@@ -1,4 +1,3 @@
-var engine;
 // var engine.scene = [];
 // var engine.activeScene;
 //var engine = new Engine();
@@ -13,6 +12,28 @@ var levels = new Proxy(temp,{
     get(target, key, receiver) {
         console.error("level variable is deprecated, use engine.scene instead");
         return engine.scene[key];
+    }
+})
+let cList = new Proxy(temp,{
+    set(target, key, value) {
+        engine.componentList[key] = value;
+        console.error("componentList is deprecated, use engine.componentList instead");
+        return true;
+    },
+    get(target, key, receiver) {
+        console.error("componentList is deprecated, use engine.componentList instead");
+        return engine.componentList[key];
+    }
+})
+Object.defineProperty(window,"componentList",{
+    set(value) {
+        cList = Object.assign(cList,value);
+        console.error("componentList variable is deprecated, use engine.componentList instead");
+        return true;
+    },
+    get() {
+        console.error("componentList variable is deprecated, use engine.componentList instead");
+        return cList;
     }
 })
 var boxes = new Proxy(temp,{
@@ -45,6 +66,27 @@ class Engine {
         this.uuidList = {};
         this.hasUUID = false;
         this.assignedUUID = 0;
+        let _cList = engine.componentList?engine.componentList:{};
+        this.componentList = Object.assign({},engine.componentList?engine.componentList:{});
+    }
+    customFileUUID(fileType) {
+        if(this.hasUUID) {
+            this.hasUUID = false;
+            return this.assignedUUID;
+        }
+        let fileName = Array.from(fileType);
+        fileName.shift();
+        fileName = fileName.toString().replaceAll(",","")
+        var UUID = fileName+"file";
+        let stack = -1;
+        while(this.files[UUID]) {
+            stack++;
+            UUID = fileName+"file"+stack;
+            if(stack>=99999999) {
+                throw new Error("Stack exceeded! Math.random is broken or uuid list is filled");
+            }
+        }
+        return UUID;
     }
     assignUUID(UUID) {
         this.hasUUID = true;
@@ -67,11 +109,11 @@ class Engine {
             this.hasUUID = false;
             return this.assignedUUID;
         }
-        let UUID = "0x"+(Math.random()*99999999999999999).toString(16);
+        var UUID = "0x"+(Math.random()*99999999999999999).toString(16);
         let stack = 0;
         while(this.uuidList[UUID]) {
             stack++;
-            let UUID = "0x"+(Math.random()*99999999999999999).toString(16);
+            UUID = "0x"+(Math.random()*99999999999999999).toString(16);
             if(stack>=99999999) {
                 throw new Error("Stack exceeded! Math.random is broken or uuid list is filled");
             }
@@ -89,9 +131,15 @@ function removeObject(objId) {
         let obj = engine.uuidList[objId];
         let sceneId = engine.getActiveScene().boxes.indexOf(obj)
         delete engine.uuidList[objId];
-        delete engine.getActiveScene().boxes[sceneId]
+        engine.getActiveScene().boxes.splice(sceneId,1);
         engine.getActiveScene().boxes = getCurrentBoxes().filter(Boolean);
-    }else {
+    }else if(typeof objId === "object") {
+        let sceneId = engine.getActiveScene().boxes.indexOf(objId)
+        delete engine.uuidList[objId.uuid];
+        engine.getActiveScene().boxes.splice(sceneId,1);
+        engine.getActiveScene().boxes = getCurrentBoxes().filter(Boolean);
+    }
+    else {
     let obj = engine.getActiveScene().boxes[objId]
     if(!obj) return;
     delete engine.uuidList[obj.uuid];
@@ -115,7 +163,12 @@ function addObj(ind, arr) {
 
 function JsonMap(file) {
     let t_levels = []
+    if(!(engine instanceof Engine)) {
+        console.error("engine hasn't been initialized in setup()")
+    }
+    let cList = engine.componentList;
     engine = new Engine();
+    engine.componentList = cList;
     var newLevels = JSON.parse(file.data)
     if(newLevels.file) {
         console.warn("funzionaasda");
@@ -167,7 +220,7 @@ function JsonMap(file) {
                     for (let component of components) {
                         var level = engine.scene[level_id.slice(0, -1)];
                         var box = level.boxes[BoxId];
-                        var componentConstructor = componentList[component.name];
+                        var componentConstructor = engine.componentList[component.name];
                         var paramObj = {}
                         paramObj.obj = box;
                         for (let _param in component.params) {
@@ -196,7 +249,8 @@ class Level {
         this.pos = pos;
         this.maxPos = maxPos;
     }
-    customDraw() {
+    customDraw(shouldRun) {
+        if(!shouldRun) return 1;
         stroke(0, 0, 255);
         line(this.pos.x, this.pos.y, this.pos.x + 25, this.pos.y);
         stroke(0, 255, 0);
@@ -205,17 +259,19 @@ class Level {
         line(player.posCenter().x - width / 2, this.maxPos, player.posCenter().x + width / 2, this.maxPos);
         stroke(0);
     }
-    display() {
+    display(OnlyDraw = false) {
         for (let t_box of this.boxes) {
-            t_box.display();
+            t_box.display(OnlyDraw);
         }
     }
-    lateUpdate() {
+    lateUpdate(shouldRun) {
+        if(!shouldRun) return 1;
         for (let t_box of this.boxes) {
             t_box.lateUpdate();
         }
     }
-    earlyUpdate() {
+    earlyUpdate(shouldRun) {
+        if(!shouldRun) return 1;
         for (let t_box of this.boxes) {
             t_box.earlyUpdate();
         }
@@ -275,8 +331,8 @@ class Level {
         return this.getLevelValues();
     }
     toJSON() {
-        const usableBoxes = this.boxes.filter((box) => box.typeId !== undefined);
-        const boxVals = usableBoxes.map((t_box) => [t_box.typeId, ...t_box.getValues()]);
+        this.boxes = this.boxes.filter((box) => box.typeId !== undefined);
+        const boxVals = this.boxes.map((t_box) => [t_box.typeId, ...t_box.getValues()]);
 
         return boxVals;
     }
@@ -302,6 +358,7 @@ function MapJson() {
     for (let level of engine.scene) {
         mapData[level.ind + "c"] = level.componentsJson()
     }
+    engine.getActiveScene().loadLevel;
     return JSON.stringify(mapData);
 }
 function addLevel(arr, pos, maxPos = 500) {

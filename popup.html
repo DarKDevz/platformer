@@ -3,10 +3,14 @@
 
 <head>
     <title>Popup Window</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.0/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-beautify/1.13.5/beautify.min.js"></script>
+    <link rel="stylesheet" href="utils/codemirror.css" />
+    <link rel="stylesheet" href="utils/darkmode.css" />
+    <script src="utils/codemirror.js"></script>
+    <script src="utils/codemirrorjs.js"></script>
+    <script src="utils/beautify.js"></script>
+    <script src="utils/uglify.js"></script>
+    <script src="utils/prettier.js"></script>
+    <script src="utils/babelParser.js"></script>
     <style>
         html,
         body {
@@ -26,43 +30,70 @@
     <textarea id="popupEditor"></textarea>
 
     <script>
-        var editor = CodeMirror.fromTextArea(document.getElementById("popupEditor"), {
-            value: "",
-            mode: "javascript",
-            lineNumbers: true,
-            theme: "default",
-            autofocus: true
+document.addEventListener("keydown", function (event) {
+if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+event.preventDefault();
+    sendTextToMainWindow();
+}
+});
+var editor = CodeMirror.fromTextArea(document.getElementById("popupEditor"), {
+    value: "",
+    mode: "javascript",
+    lineNumbers: true,
+    theme: "dracula",
+    autofocus: true,
+            });
+
+    function receivePopupText() {
+        var text = decodeURIComponent(location.search.substring(1).split("=")[1]);
+        var beautifiedText = js_beautify(text, {
+            indent_size: 2,
+        }); // Beautify the text
+        editor.setValue(beautifiedText);
+    }
+
+    function sendTextToMainWindow() {
+        //prettier formats it as i like
+        prettierPlugins.babel.parsers.parser =
+            prettierPlugins.babel.parsers.babel.parse;
+        prettierPlugins.babel.parsers.tabWidth = 0
+        var text = editor.getValue();
+        var beautifiedText = js_beautify(text, {
+            indent_size: 0, // Set indent size to 0
+            space_in_empty_paren: true, // Preserve space in empty parentheses
+            jslint_happy: true, // Use JSLint-compatible formatting
+            keep_array_indentation: false, // Remove array indentation
+            preserve_newlines: false, // Remove new lines
+            semicolon_after_statement: true,
         });
-
-        function receivePopupText() {
-            var text = decodeURIComponent(location.search.substring(1).split("=")[1]);
-            var beautifiedText = js_beautify(text, {
-                indent_size: 2
-            }); // Beautify the text
-            editor.setValue(beautifiedText);
-        }
-
-        function sendTextToMainWindow() {
-            var text = editor.getValue();
-            var beautifiedText = js_beautify(text, {
-                indent_size: 0, // Set indent size to 0
-                space_in_empty_paren: true, // Preserve space in empty parentheses
-                jslint_happy: true, // Use JSLint-compatible formatting
-                keep_array_indentation: false, // Remove array indentation
-                preserve_newlines: false // Remove new lines
-            }).replace(/\r?\n|\r/g, ''); // Remove new lines
-            window.opener.receivePopupText(beautifiedText);
-        }
-
-
-        document.addEventListener("keydown", function(event) {
-            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
-                event.preventDefault();
-                sendTextToMainWindow();
+        let toBeReviewed = beautifiedText;
+        //TRUE semicolon after statement
+        try {
+            beautifiedText = prettier.format(
+            toBeReviewed,
+            prettierPlugins.babel.parsers
+           );
+            // Remove new lines
+            removeNewLines = (beautifiedText.replace(/\r?\n|\r/g, ""));
+            try {
+            let temp = {shown:{}};
+            (new Function(beautifiedText)).call(temp);
+            try {
+                window.opener.receivePopupText(removeNewLines);
+            } catch (error) {
+                alert("Couldn't send to window");
+                alert(error);
+                console.error(error);
             }
-        });
-
-        receivePopupText();
+            } catch (error) {
+            alert("script has typeerror:");
+            alert(error)
+            }
+            } catch (error) {
+                alert("syntax mistake:" + error);
+            }
+            }
+            receivePopupText();
     </script>
 </body>
 

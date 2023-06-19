@@ -4,10 +4,12 @@ function windowResized() {
 function setup() {
 	createCanvas(windowWidth,windowHeight);
 	player = new Player();
+	engine = new Engine();
 	JsonMap(MapData)
 }
 
 function draw() {
+	
 	clear();
 	background(150, 230, 240);
 	//Update
@@ -21,4 +23,8 @@ function draw() {
 	//Late Update
 	engine.getActiveScene().lateUpdate();
 	//rect(-1,375,800,500)
+}
+//Remove right click default behaviour
+canvas.oncontextmenu = function(e) {
+	e.preventDefault();
 }

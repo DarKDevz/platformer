@@ -14,7 +14,8 @@ class Player {
         this.shootingDelay = 300; // Delay between shots in milliseconds
         this.lastShotTime = 0; // Time of the last shot in milliseconds
     }
-    display() {
+    display(shouldRun) {
+        if(!shouldRun) return 1;
         fill(0)
         rect(this.pos.x, this.pos.y, this.size.x, this.size.y);
     }

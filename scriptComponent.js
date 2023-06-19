@@ -1,4 +1,3 @@
-window['test'] = [];
 class gameScript extends Component {
     constructor({obj={}, fn='', vals={},fileUUID=''}) {
         super("gameScript");
@@ -116,18 +115,19 @@ class gameScript extends Component {
                 if (this.savedFuncs[this.id][i] === undefined) {
                     this.savedFuncs[this.id][i] = this.ownObject[i];
                 }
-                this.ownObject[i] = ()=>{
+                let script = this;
+                this.ownObject[i] = function() {
                     let shouldSkip = false;
-                    if (this.overrides[this.id][i] !== undefined) {
-                        if (this.overrides[this.id][i].bind(this.ownObject)(...arguments) === 1) {
+                    if (script.overrides[script.id][i] !== undefined) {
+                        if (script.overrides[script.id][i].bind(this)(...arguments) === 1) {
                             shouldSkip = true;
                         }
                     } else {
                         //script has been deleted
-                        this.ownObject[i] = this.savedFuncs[this.id][i].bind(this.ownObject)
+                        script.ownObject[i] = script.savedFuncs[script.id][i].bind(this)
                     }
                     if (!shouldSkip) {
-                        this.savedFuncs[this.id][i].call(this.ownObject, ...arguments);
+                        script.savedFuncs[script.id][i].call(this, ...arguments);
                     }
                 }
                 console.log(this.overrides[this.id][i]);
@@ -168,10 +168,41 @@ class gameScript extends Component {
             }
         }
     }
+    AddFileEdit(parent) {
+        let inp = createButton(this.file.UUID+this.file.type).parent(parent);
+        inp.elt.ondrop = (event) => {
+            console.log(event);
+            console.warn(event.dataTransfer.getData("UUID"));
+            let uuid = event.dataTransfer.getData("UUID");
+            let file = engine.files[uuid];
+            //If file isn't a script return
+            if(file.type !== ".js") return;
+            //Remove any references to old file
+            delete this.file.whoUses[this.ownObject.uuid];
+            if(Object.keys(this.file.whoUses).length == 0) {
+                //If no one uses it delete it
+                //alert("empty script");
+                delete engine.files[this.file.UUID]
+            }
+            this.file = file;
+            this.fn = file.data;
+            this.file.type = ".js";
+            this.file.addUser(this,this.ownObject.uuid);
+            forceMenuUpdate = true;
+            //Replace old file with new file
+        }
+        inp.elt.ondragover = (event) => {
+            event.preventDefault();
+            window.mouseReleased = () =>{}
+            //console.warn(event.dataTransfer.getData("UUID"));
+        }
+    }
     MenuEdit(parent) {
         if (!addEditableScript)
             return;
         console.log(parent);
+        let fileHolder = createDiv()
+        this.AddFileEdit(fileHolder);
         let mainDiv = addEditableScript("function", (val)=>{
             let actValue = val;
             //Avoid changing all of the files and instead just change the singular script
@@ -186,7 +217,7 @@ class gameScript extends Component {
             this.fn = this.file.data;
             return actValue;
         }
-        , ()=>this.fn, parent);
+        , ()=>this.fn, parent,[fileHolder],fileHolder);
         this.addNewEditObj(this.vals.editableVals, mainDiv[0]);
     }
     toJson() {
@@ -200,8 +231,12 @@ class gameScript extends Component {
     }
 }
 class gameSprite extends Component {
-    constructor({obj={}, src='', fileUUID=''}) {
+    constructor({obj={}, src={imageb64:''}, fileUUID=''}) {
         super("gameSprite");
+        if(!obj.sprites) {
+            debugger;
+        }
+        obj.sprites.push(this);
         if(fileUUID!=='') {
             this.fileData = engine.files[fileUUID];
             this.fileData.type = ".img";
@@ -238,18 +273,57 @@ class gameSprite extends Component {
     MenuEdit(parent) {
         if (!addEditableSprite)
             return;
-        addEditableSprite("Image", (val)=>{
+        let divHolder = createDiv()
+        let FileEdit = this.AddFileEdit();
+        FileEdit.parent(divHolder);
+        let mainDiv = addEditableSprite("Image", (val)=>{
+            forceBrowserUpdate = true;
             let actValue = val;
             console.log(val);
             this.src = actValue;
             if(val.imageb64){
-                delete this.fileData.whoUses[this.ownObject.uuid];
-                this.fileData = addGameFile(value.imageb64,".img")
+                            //Avoid changing all of the files and instead just change the singular script
+            delete this.fileData.whoUses[this.ownObject.uuid];
+            if(Object.keys(this.fileData.whoUses).length == 0) {
+                //If no one uses it delete it
+                //alert("empty script");
+                delete engine.files[this.fileData.UUID]
+            }
+                this.fileData = addGameFile(val.imageb64,".img")
                 this.fileData.addUser(this,this.ownObject.uuid);
             }
             return actValue;
         }
-        , this.src, parent)
+        , ()=>this.fileData.data, parent,[divHolder],divHolder)
+    }
+    AddFileEdit() {
+        let inp = createButton(this.fileData.UUID+this.fileData.type);
+        inp.elt.ondrop = (event) => {
+            console.log(event);
+            console.warn(event.dataTransfer.getData("UUID"));
+            let uuid = event.dataTransfer.getData("UUID");
+            let file = engine.files[uuid];
+            //If file isn't a script return
+            if(file.type !== ".img") return;
+            //Remove any references to old file
+            delete this.fileData.whoUses[this.ownObject.uuid];
+            if(Object.keys(this.fileData.whoUses).length == 0) {
+                //If no one uses it delete it
+                //alert("empty script");
+                delete engine.files[this.fileData.UUID]
+            }
+            this.fileData = file;
+            this.fileData.type = ".img";
+            this.fileData.addUser(this,this.ownObject.uuid);
+            forceMenuUpdate = true;
+            //Replace old file with new file
+        }
+        inp.elt.ondragover = (event) => {
+            event.preventDefault();
+            window.mouseReleased = () =>{}
+            //console.warn(event.dataTransfer.getData("UUID"));
+        }
+        return inp;
     }
     getSprite() {
         return this.sprite.get(...arguments)
@@ -309,11 +383,13 @@ function checkifexists(data) {
     return false;
 }
 function addGameFile(data,type) {
-    let fileexists = checkifexists(data)
+    if(data!=='') {let fileexists = checkifexists(data)
     if(fileexists) {
         return fileexists;
     }
-    let fUUID = engine.generateUUID();
+}
+    let fUUID = engine.customFileUUID(type);
+    console.warn(fUUID);
     fileexists = new gameFile(data,fUUID,type)
     //alert(fileexists.data);
     return fileexists;
