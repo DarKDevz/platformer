@@ -331,7 +331,16 @@ class gameSprite extends Component {
     reloadImage() {
         let _img = this.src;
         console.log(_img);
-        var _sprite = loadImage("data:image/png;base64," + this.fileData.data.toString());
+        if(this.fileData.customVal) {
+            var _sprite = img;
+
+        }else {
+            let img = loadImage("data:image/png;base64," + this.fileData.data.toString());
+            this.fileData.customVal = img;
+
+        var _sprite = img
+        }
+
         _sprite.width = _img.width;
         _sprite.height = _img.height;
         this.ownObject.sprite = _sprite;
@@ -356,6 +365,7 @@ class gameFile extends Component {
     constructor(data,UUID,type) {
         super("gameFile");
         this.UUID = UUID;
+        this.customVal
         this.type = type;
         console.warn(data);
         this.data = data.toString();
