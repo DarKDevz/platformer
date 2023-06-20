@@ -31,9 +31,8 @@ return 0;
 ### Object Functions:
 ```javascript
 this.display(OnlyDraw)
-//Wheter it should run this.draw only
-//or if OnlyDraw is false it should also run
-//this.update
+//OnlyDraw determines if
+//this.update should be called
 this.draw()/*
 Default Draw function
 Example for a Box Object it will do
