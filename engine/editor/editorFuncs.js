@@ -186,7 +186,6 @@ class Editor {
                 }
             }
            engine.getActiveScene().boxes.push(new classes[addSelect.value()](...classParameters));
-           engine.getActiveScene().reloadBoxes();
         }
     }
     copyObject() {
@@ -265,7 +264,6 @@ class Editor {
                     offsetPosX -= firstObjPos[0] - obj.x;
                     offsetPosY -= firstObjPos[1] - obj.y;
                 }
-               engine.getActiveScene().reloadBoxes();
                 obj.offSet(offsetPosX, offsetPosY);
                 selectedObjects.push(obj.uuid);
             }
@@ -283,7 +281,6 @@ class Editor {
        engine.getActiveScene().boxes = getCurrentBoxes().filter((_) => {
             return _
         })
-       engine.getActiveScene().reloadBoxes();
         selectedObjects = selectedObjects.filter((_) => {
             return _
         })
@@ -294,6 +291,8 @@ class Editor {
 
     inputFile = createFileInput(
         (file)=>{
+            forceBrowserUpdate = true;
+            forceMenuUpdate = true;
             JsonMap(file)
         });
     //Fixes some cross platform bugs
@@ -336,9 +335,22 @@ class Editor {
     ContentBrowserPanel.Main = createDiv();
     ContentBrowserPanel.Main.parent(ContentBrowserPanel.Holder);
     let _ = createDiv()
-    createDiv('ContentBrowserPanel').parent(_)
-    _.mousePressed(()=>{showBrowserPanel()})
-    _.style('cursor: pointer;')
+    let cntentBtn = createDiv('ContentBrowserPanel')
+    cntentBtn.parent(_)
+    let select = createSelect();
+    select.parent(_);
+    let newList = ['.js','.img']
+    for(let name of newList) {
+        select.option(name)
+    }
+    let addFilebtn = createButton('add')
+    addFilebtn.mousePressed(()=>{
+        let file = addGameFile('',select.value(),{})
+        changeName(file);
+    })
+    addFilebtn.parent(_);
+    cntentBtn.mousePressed(()=>{showBrowserPanel()})
+    cntentBtn.style('cursor: pointer;')
     //_.class("accordion-content");
     _.parent(ContentBrowserPanel.Main);
     ContentBrowserPanel.HUD = createDiv();
@@ -600,7 +612,8 @@ function addEditableSprite(name, set, get,
     console.log(_get);
     window.jsonImage = (text) => {
       console.log(text);
-      _get = ()=>{set(text)};
+      let val = set(text);
+      _get = ()=>{val};
     };
   });
 

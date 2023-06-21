@@ -13,6 +13,26 @@ class Engine {
         let _cList = engine.componentList?engine.componentList:{};
         this.componentList = Object.assign({},engine.componentList?engine.componentList:{});
     }
+    deleteGameFile(id,value = false) {
+        delete this.files[this.getByReference(id,value).UUID]
+    }
+    getByReference(id,value=false) {
+        if(this.files[id]) {
+            return this.files[id];
+        }else {
+            for(let fileUUID in this.files) {
+                let file = this.files[fileUUID];
+                if(!value) {
+                    for(let type in file.references) {
+                        let reference = file.references[type];
+                        if(reference == id) return file;
+                    }
+                }
+                if(file.references[id]===value) return file;
+            }
+            return false;
+        }
+    }
     customFileUUID(fileType) {
         if(this.hasUUID) {
             this.hasUUID = false;
@@ -68,16 +88,24 @@ class Engine {
 function getCurrentBoxes() {
     return engine.getActiveScene().boxes
 }
-
+function deleteUser(obj) {
+    let components = obj.components;
+    for(let component of components) {
+        //Don't remove files that aren't used
+        component.deleteUser(false);
+    }
+}
 function removeObject(objId) {
     if(typeof objId === "string" && objId.startsWith("0x")) {
         //it's passing an UUID, delete accordingly
         let obj = engine.uuidList[objId];
+        deleteUser(obj)
         let sceneId = engine.getActiveScene().boxes.indexOf(obj)
         delete engine.uuidList[objId];
         engine.getActiveScene().boxes.splice(sceneId,1);
         engine.getActiveScene().boxes = getCurrentBoxes().filter(Boolean);
     }else if(typeof objId === "object") {
+        deleteUser(objId);
         let sceneId = engine.getActiveScene().boxes.indexOf(objId)
         delete engine.uuidList[objId.uuid];
         engine.getActiveScene().boxes.splice(sceneId,1);
@@ -86,6 +114,7 @@ function removeObject(objId) {
     else {
     let obj = engine.getActiveScene().boxes[objId]
     if(!obj) return;
+    deleteUser(obj)
     delete engine.uuidList[obj.uuid];
     delete engine.getActiveScene().boxes[objId];
     engine.getActiveScene().boxes = getCurrentBoxes().filter(Boolean);
@@ -113,7 +142,7 @@ function ScenesfromObject(levelsObject) {
                 engine.assignUUID(UUID);
                 console.warn(file[UUID])
                 if(typeof file[UUID] === "object") {
-                    addGameFile(file[UUID].data,file[UUID].type);
+                    addGameFile(file[UUID].data,file[UUID].type,file[UUID].references?file[UUID].references:{});
                 }else {
                     addGameFile(file[UUID]);
                 }
@@ -266,6 +295,7 @@ class Level {
     }
     reloadBoxes() {
         //boxes = this.boxes;
+        console.error("reloadBoxes isn't needed, you can remove all fucntion calls that use this");
     }
     componentsJson() {
         let usableBoxes = this.boxes.filter((box) => (box.components.length !== 0)&&(box.typeId !== undefined));
@@ -300,7 +330,7 @@ function MapJson() {
     for(let fileId in engine.files) {
         let file = engine.files[fileId]
         let obj = {};
-        obj[fileId] =  {data:file.data.replaceAll('"',"'"),type:file.type};
+        obj[fileId] =  {data:file.data.replaceAll('"',"'"),type:file.type,references:file.references};
         fileList.push(obj);
     }
     mapData["version"] = 1.0;

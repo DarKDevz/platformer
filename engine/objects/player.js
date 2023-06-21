@@ -152,7 +152,6 @@ class Player {
         if (timeSinceLastShot >= this.shootingDelay) {
             let bullet = new Bullet(this.posCenter().x, this.posCenter().y, direction.x, direction.y);
            engine.getActiveScene().boxes.push(bullet);
-           engine.getActiveScene().reloadBoxes();
             this.lastShotTime = currentTime;
         }
     }

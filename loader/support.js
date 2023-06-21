@@ -54,3 +54,25 @@ Object.defineProperty(window,"activeLevel",{
         return engine.activeScene;
     }
 })
+Object.defineProperty(window,"deleteGameFile",{
+    set(value) {
+        //engine.activeScene = value;
+        console.error("deleteGameFile function is deprecated, use engine.deleteGameFile instead");
+        return true;
+    },
+    get() {
+        console.error("deleteGameFile function is deprecated, use engine.deleteGameFile instead");
+        return engine.deleteGameFile.bind(engine);
+    }
+})
+Object.defineProperty(window,"getByReference",{
+    set(value) {
+        //engine.activeScene = value;
+        console.error("getByReference function is deprecated, use engine.getByReference instead");
+        return true;
+    },
+    get() {
+        console.error("getByReference function is deprecated, use engine.getByReference instead");
+        return engine.getByReference.bind(engine);
+    }
+})

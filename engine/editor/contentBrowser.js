@@ -1,4 +1,30 @@
+function addFile(type,name) {
+    //Implement default data of each 
+    //later on
+    addGameFile('',typ,{name:name})
+}
 //Browser Panel Stuff
+function changeName(_file) {
+    let alreadyHasName = _file.references.name;
+    alreadyHasName = alreadyHasName?alreadyHasName:_file.UUID
+    let newName = prompt("Change file name",alreadyHasName);
+    if(newName === null) {
+        //Client has escaped
+        return;
+    }
+    //Delete all references
+    let file = engine.files[_file.UUID]
+    if(getByReference('name',newName)) {
+        alert('already used name')
+        changeName(file);
+    }else {
+    file.editReference('name',newName);
+    if(newName !== alreadyHasName) {
+        forceBrowserUpdate = true;
+        forceMenuUpdate = true;
+    }
+    }
+}
 function readTypeAndName() {
     for(let nameOfFile in ContentBrowserPanel.files) {
         let _file = ContentBrowserPanel.files[nameOfFile];
@@ -12,7 +38,10 @@ function readTypeAndName() {
                     script.loadFile(file);
                 }
             };
-            let inp = createButton(nameOfFile+typeOfFile).parent(ContentBrowserPanel.HUD);
+            let alreadyHasName = _file.references.name;
+            let buttonName = alreadyHasName?alreadyHasName:_file.UUID
+            buttonName = buttonName+typeOfFile
+            let inp = createButton(buttonName).parent(ContentBrowserPanel.HUD);
             inp.elt.draggable = "true";
             inp.elt.ondragstart = (event)=>{
                 event.dataTransfer.setData("UUID",ContentBrowserPanel.files[nameOfFile].UUID);
@@ -20,17 +49,7 @@ function readTypeAndName() {
             }
             inp.mousePressed(() => {
                 if(mouseButton === "right") {
-                    let newName = prompt("Change file name",_file.UUID);
-                    //Delete all references
-                    delete engine.files[_file.UUID];
-                    _file.UUID = newName;
-                    for(let ObjId in _file.whoUses) {
-                        let script = _file.whoUses[ObjId];
-                        script.loadFile(_file);
-                    }
-                    engine.files[_file.UUID] = _file;
-                    forceMenuUpdate = true;
-                    forceBrowserUpdate = true;
+                    changeName(_file);
                 }else {
                     window.mouseReleased = () => {
                         window.mouseReleased = () => {};
@@ -56,8 +75,7 @@ function readTypeAndName() {
             img.mousePressed(() => {
                 console.log(mouseButton);
                 if(mouseButton === "right") {
-                    let newName = prompt("Change file name",nameOfFile);
-                    console.log(newName);
+                    changeName(_file);
                 }else {
                     window.mouseReleased = () => {
                         this.mouseReleased = ()=>{}

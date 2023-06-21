@@ -18,7 +18,7 @@ class gameScript extends Component {
                     }
                     //console.log('The value is an object.');
                 }
-                obj.shown = value;
+                obj.shown = Object.assign(obj.shown,value);
                 let normalObject = removeNonNormal(value);
                 if(typeof normalObject === "object") {
                 for(let i in normalObject) {
@@ -119,15 +119,15 @@ class gameScript extends Component {
                 this.ownObject[i] = function() {
                     let shouldSkip = false;
                     if (script.overrides[script.id][i] !== undefined) {
-                        if (script.overrides[script.id][i].bind(this)(...arguments) === 1) {
+                        if (script.overrides[script.id][i].bind(script.ownObject)(...arguments) === 1) {
                             shouldSkip = true;
                         }
                     } else {
                         //script has been deleted
-                        script.ownObject[i] = script.savedFuncs[script.id][i].bind(this)
+                        script.ownObject[i] = script.savedFuncs[script.id][i].bind(script.ownObject)
                     }
                     if (!shouldSkip) {
-                        script.savedFuncs[script.id][i].call(this, ...arguments);
+                        script.savedFuncs[script.id][i].call(script.ownObject, ...arguments);
                     }
                 }
                 console.log(this.overrides[this.id][i]);
@@ -169,7 +169,9 @@ class gameScript extends Component {
         }
     }
     AddFileEdit(parent) {
-        let inp = createButton(this.file.UUID+this.file.type).parent(parent);
+        let alreadyHasName = this.file.references.name;
+        let buttonName = alreadyHasName?alreadyHasName:this.file.UUID
+        let inp = createButton(buttonName+this.file.type).parent(parent);
         inp.elt.ondrop = (event) => {
             console.log(event);
             console.warn(event.dataTransfer.getData("UUID"));
@@ -208,14 +210,12 @@ class gameScript extends Component {
         , ()=>this.fn, parent,[fileHolder],fileHolder);
         this.addNewEditObj(this.vals.editableVals, mainDiv[0]);
     }
+    deleteUser(shouldDelete = true) {
+        this.file.removeUser(this.ownObject.uuid,shouldDelete);
+    }
     loadFile(file) {
         if(this.file.UUID !== file.UUID) {
-            delete this.file.whoUses[this.ownObject.uuid];
-            if(Object.keys(this.file.whoUses).length == 0) {
-                //If no one uses it delete it
-                //alert("empty script");
-                delete engine.files[this.file.UUID]
-            }
+            this.deleteUser()
         }
         this.file = file;
         //Include Ourselfs as a user
@@ -224,7 +224,10 @@ class gameScript extends Component {
         //Load Sprite automatically
         this.fn = this.file.data;
         //Re-initiate Object
-        this.ownObject.init();        
+        //Initiate Object only if it's in the right scene;
+        if(engine.getActiveScene().boxes.indexOf(engine.getfromUUID(this.ownObject.uuid)) > -1) {
+        engine.getfromUUID(this.ownObject.uuid).init()
+        }
         forceMenuUpdate = true;
     }
     toJson() {
@@ -296,7 +299,9 @@ class gameSprite extends Component {
         , ()=>this.fileData.data, parent,[divHolder],divHolder)
     }
     AddFileEdit() {
-        let inp = createButton(this.fileData.UUID+this.fileData.type);
+        let alreadyHasName = this.fileData.references.name;
+        let buttonName = alreadyHasName?alreadyHasName:this.fileData.UUID
+        let inp = createButton(buttonName+this.fileData.type);
         inp.elt.ondrop = (event) => {
             console.log(event);
             console.warn(event.dataTransfer.getData("UUID"));
@@ -315,15 +320,13 @@ class gameSprite extends Component {
         }
         return inp;
     }
+    deleteUser(shouldDelete = true) {
+        this.fileData.removeUser(this.ownObject.uuid,shouldDelete);
+    }
     loadFile(file) {
         //Remove Og File
         if(this.fileData.UUID !== file.UUID) {
-            delete this.fileData.whoUses[this.ownObject.uuid];
-            if(Object.keys(this.fileData.whoUses).length == 0) {
-                //If no one uses it delete it
-                //alert("empty script");
-                delete engine.files[this.fileData.UUID]
-            }
+            this.deleteUser()
         }
         this.fileData = file;
         //Include Ourselfs as a user
@@ -375,12 +378,32 @@ class gameFile extends Component {
     constructor(data,UUID,type) {
         super("gameFile");
         this.customData = undefined;
+        this.references = {};
         this.UUID = UUID;
         this.type = type;
         console.warn(data);
         this.data = data.toString();
         engine.files[UUID] = this;
         this.whoUses = {};
+    }
+    editReference(name,value) {
+        this.references[name] = value;
+        if(!value) {
+            delete this.references[name]
+        }
+    }
+    addReference(name,value) {
+        this.references[name] = value
+    }
+    removeUser(UUID,deleteIfEmpty = false) {
+        delete this.whoUses[UUID];
+        if(deleteIfEmpty) {
+            if(Object.keys(this.whoUses).length == 0) {
+                //If no one uses it delete it
+                //alert("empty script");
+                delete engine.files[this.UUID]
+            }
+        }
     }
     addUser(obj,UUID) {
         this.whoUses[UUID] = obj;
@@ -402,18 +425,42 @@ function checkifexists(data) {
     }
     return false;
 }
-function addGameFile(data,type) {
-    if(data!=='') {let fileexists = checkifexists(data)
-    if(fileexists) {
-        return fileexists;
-    }
-}
+function addGameFile(data,type,references) {
+        console.error(references);
+        if(data!=='') {
+            let fileexists = checkifexists(data)
+            if(fileexists) {
+                return fileexists;
+            }
+        }
     let fUUID = engine.customFileUUID(type);
     console.warn(fUUID);
     fileexists = new gameFile(data,fUUID,type)
+    fileexists.references = Object.assign({},references);
     //alert(fileexists.data);
     return fileexists;
 }
+/* function deleteGameFile(id,value = false) {
+    delete engine.files[getByReference(id,value).UUID]
+}
+function getByReference(id,value=false) {
+    if(engine.files[id]) {
+        return engine.files[id];
+    }else {
+        for(let fileUUID in engine.files) {
+            let file = engine.files[fileUUID];
+            if(!value) {
+                for(let type in file.references) {
+                    let reference = file.references[type];
+                    if(reference == id) return file;
+                }
+            }
+            if(file.references[id]===value) return file;
+        }
+        return false;
+    }
+} */
+
 function replaceValues(obj, replaced) {
     if(typeof obj !== "object") {
         return obj;

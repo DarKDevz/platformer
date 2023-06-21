@@ -12,6 +12,7 @@ class GameObject {
         this.newOverrides = {};
         this.uuid = engine.generateUUID();
         this.sprites = [];
+        this.shown = {};
         engine.uuidList[this.uuid] = this;
     }
     jsonComponents() {
