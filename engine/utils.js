@@ -1,3 +1,30 @@
+var overUI = window.overUI ? window.overUI: false;
+function OpenDialog(MainDiv,OnExit=()=>{},headerText=createDiv("Dialog Window")) {
+    let Holder = createDiv()
+    let window = createDiv();
+    window.parent(Holder);
+    window.style("display: flex");
+    let ExitButton = createButton("X");
+    ExitButton.style("cursor:pointer;")
+    ExitButton.mousePressed(()=>{
+        Holder.remove()
+        OnExit()
+    });
+    Holder.style("width:fit-content");
+    Holder.style("overflow:auto");
+    Holder.style("max-height:"+height/2);
+    Holder.style(" background-color: rgba(0, 0, 0, 0.25);")
+    ExitButton.parent(window);
+    headerText.parent(window);
+    MainDiv.parent(Holder)
+    let offsets = Holder.size()
+    Holder.position((width-offsets.width)/2,(height-offsets.height)/2)
+    uiElement(Holder);
+}
+function uiElement(element) {
+    element.mouseOver(() => overUI = true);
+    element.mouseOut(() => overUI = false);
+}
 if (Array.prototype.equals)
     console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
 // attach the .equals method to Array's prototype to call it on any array

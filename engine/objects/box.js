@@ -8,8 +8,11 @@ class Box extends GameObject {
         this.oldY;
         this.typeId = 0;
         this.isCollidable = true;
+        this.collisionType = 'Rect';
     }
-
+    getCollisionVectors() {
+    return [this,{x:this.width,y:this.height}]
+    }
     getValuesName() {
         return super.getValuesName().concat(["width", "height"]);
     }
@@ -25,18 +28,14 @@ class Box extends GameObject {
         fill(this.clr);
         rect(this.x, this.y, this.width, this.height);
     }
-    display(OnlyDraw) {
-        this.draw()
+    display(OnlyDraw,noDraw = false) {
+        if(!noDraw){this.draw()}
         if(!OnlyDraw)this.update();
     }
     collision(obj) {
-        const { x, y, width, height, pos, size } = obj;
-        const oX = pos !== undefined ? pos.x : x;
-        const oY = pos !== undefined ? pos.y : y;
-        const oW = size !== undefined ? size.x : width;
-        const oH = size !== undefined ? size.y : height;
-
-        let collides = collide(this, { x: oX, y: oY, width: oW, height: oH });
+        let type = obj.collisionType+'Vector'
+        let ObjectVectors = obj.getCollisionVectors()
+        let collides = HandleCollision('Rect',type,...this.getCollisionVectors(),...ObjectVectors)
 
         if (collides) {
             this.onCollide(obj);

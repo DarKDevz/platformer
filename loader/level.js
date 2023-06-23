@@ -10,6 +10,7 @@ class Engine {
         this.uuidList = {};
         this.hasUUID = false;
         this.assignedUUID = 0;
+        this.cameraPos = {x:0,y:0};
         let _cList = engine.componentList?engine.componentList:{};
         this.componentList = Object.assign({},engine.componentList?engine.componentList:{});
     }
@@ -234,13 +235,39 @@ class Level {
         stroke(0, 255, 0);
         line(this.pos.x, this.pos.y, this.pos.x, this.pos.y + 25);
         stroke(255, 0, 0);
-        line(player.posCenter().x - width / 2, this.maxPos, player.posCenter().x + width / 2, this.maxPos);
+        line(engine.cameraPos.x, this.maxPos, engine.cameraPos.x + width, this.maxPos);
         stroke(0);
     }
     display(OnlyDraw = false) {
-        for (let t_box of this.boxes) {
-            t_box.display(OnlyDraw);
-        }
+        translate(-engine.cameraPos.x, -engine.cameraPos.y)
+        //Call without drawing
+        //Do Update First Only if you can
+        let collisionVectors = [{x:engine.cameraPos.x,y:engine.cameraPos.y},{x:width,y:height}]
+            if(!OnlyDraw) {
+                for (let t_box of this.boxes) {
+                    t_box.display(false,true);
+                }
+            }
+            //Draw
+            let zIndexed = {};
+            let drawable = []
+            for (let t_box of this.boxes) {
+                if(t_box.z < 0) {
+                    console.error("Z Index shouldn't be negative!")
+                    console.trace()
+                }
+                let ObjectVectors = t_box.getCollisionVectors()
+                let collides = HandleCollision('Rect',t_box.collisionType+'Vector',...collisionVectors,...ObjectVectors)
+                if(collides) {
+                    drawable.push(t_box)
+                }
+            }
+            let sorted = [...drawable].sort((a,b)=>{
+                return a.z-b.z
+            })
+            for (let t_box of sorted) {
+                    t_box.display(true,false);
+            }
     }
     lateUpdate(shouldRun = true) {
         if(!shouldRun) return 1;

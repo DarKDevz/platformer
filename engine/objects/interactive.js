@@ -2,12 +2,17 @@ class Interactive extends GameObject {
     constructor(x, y, callback = "()=>{}", radius = 5) {
         super(x, y, "interactive");
         this.r = radius;
+        this.z = 1;
         this.callback = callback;
         this.components = [];
+        this.collisionType = 'Circle'
         /*let gScript = new gameScript({ obj: this, fn: callback });
         this.components.push(gScript);*/
         //gScript.initialize(callback);
         this.typeId = 5;
+    }
+    getCollisionVectors() {
+        return [{x:this.x,y:this.y},this.r*2]
     }
     getValuesName() {
         return [...super.getValuesName(), "noMenu", "radius"];
@@ -54,11 +59,8 @@ class Interactive extends GameObject {
         if (collides && player === obj) this.onCollide();
         return collides;
     }
-    display() {
-        this.oldX = this.x;
-        this.oldY = this.y;
+    draw() {
         fill(255, 0, 255);
-        //it wants a diameter
         circle(this.x, this.y, this.r * 2);
     }
     customDraw() {

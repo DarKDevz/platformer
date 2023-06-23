@@ -25,6 +25,9 @@ var makingNew = false,
     removeButton = null,
     levelButton = null,
     levelMode = false,
+    gridSize = 1,
+    lastUsedMouse = {x:false,y:false},
+    mouseDiff = {x:0,y:0};
     actionButtons = null,
     sideMenu = null,
     boxInfo = null,
@@ -53,23 +56,38 @@ class Editor {
         if (!levelMode && lastWasPressed != Pressed && mouseIsPressed && mouseButton === LEFT) {
             selectBox.push([this.mouseCoords().x, this.mouseCoords().y]);
         }
+        if(lastUsedMouse.x&&(abs(mouseX-lastUsedMouse.x)>gridSize||abs(mouseY-lastUsedMouse.y)>gridSize)) {
+            lastUsedMouse = _pmouse;
+        }
         if (mouseIsPressed && mouseButton === CENTER) {
             let diffX = mouseX - pmouseX
             let diffY = mouseY - pmouseY
+            let actOffset = {
+                x: Math.floor((mouseDiff.x+gridSize/2)/gridSize)*gridSize,
+                y: Math.floor((mouseDiff.y+gridSize/2)/gridSize)*gridSize
+            }
             if (selectedObjects.length !== 0) {
+                mouseDiff.x += diffX;
+                mouseDiff.y += diffY;
                 for (let t_box_id of selectedObjects) {
-                    let t_box = engine.getfromUUID(t_box_id);
-                    
+                    let t_box = engine.getfromUUID(t_box_id);            
                     if(t_box) {
+                        //Rework later idk
                         t_box.customDraw();
-                        t_box.offSet(t_box.x += diffX, t_box.y += diffY, diffX, diffY);
+                        let newPos = {x:t_box.x,y:t_box.y}
+                        newPos.x = Math.floor(newPos.x/gridSize)*gridSize
+                        newPos.y = Math.floor(newPos.y/gridSize)*gridSize
+                        if(abs(mouseDiff.x)>gridSize) newPos.x += actOffset.x
+                        if(abs(mouseDiff.y)>gridSize) newPos.y += actOffset.y
+                        t_box.offSet(newPos.x, newPos.y, mouseDiff.x, mouseDiff.y);
                     }else {
                         selectedObjects.splice(t_box_id,1);
                     }
                 }
+                mouseDiff = {x:(mouseDiff.x)%gridSize,y:(mouseDiff.y)%gridSize};
             } else {
-                cameraPos.x += diffX;
-                cameraPos.y += diffY;
+                cameraPos.x -= diffX;
+                cameraPos.y -= diffY;
             }
         }
         if (!levelMode && lastWasPressed != Pressed && !mouseIsPressed && !overUI) {
@@ -117,7 +135,7 @@ class Editor {
         }
     }
     mouseCoords() {
-        return createVector(round(Playing && !Paused ? mouseX + player.cameraPos.x : mouseX - cameraPos.x), round(Playing && !Paused ? mouseY + player.cameraPos.y : mouseY - cameraPos.y))
+        return createVector(round(Playing && !Paused ? mouseX + player.cameraPos.x : mouseX + cameraPos.x), round(Playing && !Paused ? mouseY + player.cameraPos.y : mouseY + cameraPos.y))
     }
     transformCoordinates(drawSelect) {
         var x1 = drawSelect[0][0];
@@ -222,7 +240,7 @@ class Editor {
     }
     levelScreen() {
         levelMode = !levelMode;
-        selectedObjects = [];
+        //selectedObjects = [];
         for (let t_info of infoDivs) {
             t_info.remove();
         }
@@ -237,6 +255,9 @@ class Editor {
                     LValues[i] = actValue;
                 }, () => LValues[i])
             }
+            addMenuInput("Grid Size",(value) => {
+                gridSize = parseInt(value)?parseInt(value):gridSize;
+            },()=>gridSize)
         }
     }
     pasteObjects() {
@@ -520,44 +541,42 @@ class Editor {
 var editor = new Editor()
 //Accordion menu, menu edit, script edit, image edit
 //Don't touch could break everything
-function accordionMenu(headerText, inputField, name, onShow = () => {}) {
-  let isExpanded = false;
-
-  headerText.class("accordion-header");
-      headerText.html("►" + name);
-      inputField.style("max-height", "0px");
-  inputField.class("accordion-content");
-  inputField.hide();
-
-  headerText.mousePressed(() => {
-    isExpanded = !isExpanded;
+function accordionMenu(headerText, inputField, name, Opened) {
+    let isExpanded = Opened.value;
+    let UpdateExpansion = () => {
     if (isExpanded) {
-      headerText.html("▼" + name);
-      inputField.show();
-        onShow();
-      inputField.style("max-height", inputField.elt.scrollHeight + "px");
-      setTimeout(() => {
-          console.log("??");
-          inputField.style('max-height', 'none');
-      }, 400);
-      inputField.style('margin-left', '1em');
+        headerText.html("▼" + name);
+        inputField.show();
+        inputField.style("max-height", inputField.elt.scrollHeight + "px");
+        setTimeout(() => {
+            Opened.value = true;
+            inputField.style('max-height', 'none');
+        }, 400);
+        inputField.style('margin-left', '1em');
     } else {
-      headerText.html("►" + name);
-      inputField.style("max-height", "0px");
-      setTimeout(() => {
-          onShow();
+        headerText.html("►" + name);
+        inputField.style("max-height", "0px");
+        setTimeout(() => {
+        Opened.value = false;
         inputField.hide();
-      }, 200);
+        }, 200);
     }
-  });
-
+    }
+    if(isExpanded){inputField.style('max-height', 'none')}
+    else{inputField.hide();}
+    UpdateExpansion();
+     headerText.mousePressed(() => {
+        isExpanded = !isExpanded;
+        UpdateExpansion();
+    });
   return inputField;
 }
 //UtilFunc
 function addEditableScript(name, set, get, parentName = "sideMenu", additionalDiv = [],
-replaceButton = false) {
+replaceButton = false,opener) {
   let divHolder = createDiv();
   let headerText = createSpan("Script Component").parent(divHolder);
+  headerText.style("cursor: pointer");
   let _get = get;
   let inputField = createDiv();
   inputField.child(...additionalDiv);
@@ -578,7 +597,7 @@ replaceButton = false) {
   });
   inp.size(177, 21);
 
-  accordionMenu(headerText, inputField, "Script Component");
+  accordionMenu(headerText, inputField, "Script Component",opener);
 
   infoDivs.push(divHolder);
   infoDivs[infoDivs.length - 1].parent(parentName);
@@ -589,10 +608,12 @@ replaceButton = false) {
 function addEditableSprite(name, set, get,
      parentName = "sideMenu",
      additionalDivs = [],
-     replaceButton = false
+     replaceButton = false,
+     opener
      ) {
   let divHolder = createDiv();
   let headerText = createSpan("Sprite Component").parent(divHolder);
+  headerText.style("cursor: pointer");
   let _get = get;
   let inputField = createDiv();
   inputField.child(...additionalDivs);
@@ -602,7 +623,7 @@ function addEditableSprite(name, set, get,
   let _span = createSpan(name + ": ").parent(inputField);
   let inp = createButton("Sprite").parent(inputField);
   }
-  accordionMenu(headerText, inputField, "Sprite Component");
+  accordionMenu(headerText, inputField, "Sprite Component",opener);
   inp.mousePressed(() => {
     
     let popup = window.open('imagePopup.html', '_blank', 'width=400,height=400');

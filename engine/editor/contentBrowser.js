@@ -1,3 +1,4 @@
+var oldScroll = 0;
 function addFile(type,name) {
     //Implement default data of each 
     //later on
@@ -65,7 +66,7 @@ function readTypeAndName() {
             inp.size(140,140);
             ContentBrowserPanel.Divs.push(inp);
         }else if(typeOfFile === ".img") {
-            let img = createImg("data:image/png;base64,"+_file.data).parent(ContentBrowserPanel.HUD);
+            let img = createImg(_file.data).parent(ContentBrowserPanel.HUD);
             img.elt.draggable = "true";
             img.elt.ondragstart = (event)=>{
                 event.dataTransfer.setData("UUID",ContentBrowserPanel.files[nameOfFile].UUID);
@@ -106,6 +107,7 @@ function readTypeAndName() {
               ContentBrowserPanel.Divs.push(img);
         }
     }
+    ContentBrowserPanel.Main.elt.scrollTop = oldScroll;
 }
 function showEditMenu() {
     
@@ -124,6 +126,7 @@ function showBrowserPanel() {
     }
 }
 function removeOldContent() {
+    oldScroll = ContentBrowserPanel.Main.elt.scrollTop;
     for(let i of ContentBrowserPanel.Divs) {
         i.remove();
     }

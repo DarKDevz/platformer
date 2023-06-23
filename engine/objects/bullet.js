@@ -7,6 +7,9 @@ class Bullet extends GameObject {
         this.id = selfId;
         this.startDate = Date.now();
     }
+    getCollisionVectors() {
+        return [this,this.r*2]
+    }
     getClassName() {
         return "Interactive"
     }

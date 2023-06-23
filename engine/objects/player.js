@@ -13,6 +13,10 @@ class Player {
         this.groundedId = null;
         this.shootingDelay = 300; // Delay between shots in milliseconds
         this.lastShotTime = 0; // Time of the last shot in milliseconds
+        this.collisionType = 'Rect'
+    }
+    getCollisionVectors() {
+        return [this.pos,this.size]
     }
     display(shouldRun = true) {
         if(!shouldRun) return 1;
@@ -82,7 +86,7 @@ class Player {
         this.old = createVector(0, 0);
     }
     collision(id) {
-        let t_box = engine.getActiveScene().boxes[id];
+        let t_box = engine.getfromUUID(id);
         if (t_box && t_box.isCollidable)
             return t_box.collision(this);
     }
@@ -94,7 +98,7 @@ class Player {
         return t_v;
     }
     yCollision(id) {
-        let t_box = engine.getActiveScene().boxes[id];
+        let t_box = engine.getfromUUID(id);
         let bpos = createVector(t_box.x, t_box.y)
         let bsize = createVector(t_box.width, t_box.height);
         let t_center = this.center(bsize, bpos);
@@ -113,7 +117,7 @@ class Player {
         }
     }
     xCollision(id) {
-        let t_box = engine.getActiveScene().boxes[id];
+        let t_box = engine.getfromUUID(id);
         let bpos = createVector(t_box.x, t_box.y);
         let bsize = createVector(t_box.width, t_box.height);
         let t_center = this.center(bsize, bpos);
@@ -131,7 +135,7 @@ class Player {
         }
     }
     onCollide(id) {
-        let t_box = engine.getActiveScene().boxes[id];
+        let t_box = engine.getfromUUID(id);
         if (!t_box) return;
         let bpos = createVector(t_box.oldX, t_box.oldY)
         let bsize = createVector(t_box.width, t_box.height);
@@ -157,22 +161,29 @@ class Player {
     }
     checkCollisions() {
         let found = false;
+        let groundExists = false;
         let t_box_id;
         for (t_box_id in engine.getActiveScene().boxes) {
-            let c = this.collision(t_box_id);
+            let box = engine.getActiveScene().boxes[t_box_id];
+            let c = this.collision(box.uuid);
             if (c) {
-                this.collidedId = t_box_id;
-                this.onCollide(t_box_id);
+                this.collidedId = box.uuid;
+                this.onCollide(box.uuid);
             }
             if (!found) {
                 found = c;
             }
-            if (this.grounded && t_box_id == this.groundedId) {
+            if (this.grounded && box.uuid == this.groundedId) {
+                groundExists = true;
                 this.pos.y++;
-                this.grounded = this.collision(this.collidedId);
-                if (this.grounded) this.groundedId = this.collidedId;
+                this.grounded = this.collision(box.uuid);
+                if (this.grounded) this.groundedId = box.uuid;
                 this.pos.y--;
             }
+        }
+        //If ground was deleted
+        if(!groundExists) {
+            this.grounded = false;
         }
         this.colliding = found;
         return this.colliding;
@@ -181,7 +192,8 @@ class Player {
         let pos = this.posCenter();
         this.cameraPos = createVector(lerp(this.cameraPos.x, pos.x - width / 2, .25), lerp(this.cameraPos.y, pos.y - height / 2, .25));
         resetMatrix();
-        translate(-this.cameraPos.x, -this.cameraPos.y);
+        engine.cameraPos = this.cameraPos.copy();
+        //translate(-this.cameraPos.x, -this.cameraPos.y);
 
     }
 }

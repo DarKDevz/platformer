@@ -1,11 +1,8 @@
 function collide(rect1,rect2) {
-	return (rect1.x < rect2.x + rect2.width &&
-   rect1.x + rect1.width > rect2.x &&
-   rect1.y < rect2.y + rect2.height &&
-   rect1.y + rect1.height > rect2.y)
+	return HandleCollision('Rect','RectVector',rect1,{x:rect1.width,y:rect1.height},rect2,{x:rect2.width,y:rect2.height})
 }
 function collideCircle(rect,circle)  {
-   return (checkRectangleCircleIntersection(rect.x,rect.y,rect.width,rect.height,circle.x,circle.y,circle.r))
+   return HandleCollision('Rect','CircleVector',rect,{x:rect.width,y:rect.height},circle,circle.r*2)
 }
 function checkRectangleCircleIntersection(x1, y1, width, height, cx, cy, r) {
    // Calculate the closest point on the rectangle to the center of the circle

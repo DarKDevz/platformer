@@ -28,7 +28,7 @@ function draw() {
     if (Playing && !Paused)
         player.camera();
     else
-        translate(cameraPos.x, cameraPos.y)
+        engine.cameraPos = cameraPos;
     if (Playing && !Paused)
         player.checkCollisions();
     engine.getActiveScene().display(Paused);

@@ -1,3 +1,4 @@
+var savedOpened = {};
 class gameScript extends Component {
     constructor({obj={}, fn='', vals={},fileUUID=''}) {
         super("gameScript");
@@ -141,7 +142,7 @@ class gameScript extends Component {
     get fn() {
         return this._src
     }
-    addNewEditObj(obj, parent='sideMenu') {
+    addNewEditObj(obj, parent='sideMenu', opened) {
         let Holder = parent
         //console.log(obj)
         for (let i in obj) {
@@ -149,11 +150,11 @@ class gameScript extends Component {
             if (typeof obj[i] === "object") {
                 let divHolder = createDiv().parent(parent);
                 let headerText = createDiv();
-                Holder = accordionMenu(headerText, createDiv(), i);
+                Holder = accordionMenu(headerText, createDiv(), i, opened);
                 headerText.parent(divHolder);
                 Holder.parent(divHolder);
                 infoDivs.push(headerText);
-                this.addNewEditObj(obj[i], Holder);
+                this.addNewEditObj(obj[i], Holder,opened[i]?opened[i]:opened[i] = {value:false});
             } else {
                 addMenuInput(i, (_)=>{
                     obj[i] = parseInt(_) ? parseInt(_) : _
@@ -195,6 +196,9 @@ class gameScript extends Component {
         console.log(parent);
         let fileHolder = createDiv()
         this.AddFileEdit(fileHolder);
+        if(!savedOpened[this.ownObject.uuid+"Script"]){
+            savedOpened[this.ownObject.uuid+"Script"] = {value:false}
+        }
         let mainDiv = addEditableScript("function", (val)=>{
             let actValue = val;
             //if only one uses it's better to replace the file
@@ -207,8 +211,8 @@ class gameScript extends Component {
             }
             return actValue;
         }
-        , ()=>this.fn, parent,[fileHolder],fileHolder);
-        this.addNewEditObj(this.vals.editableVals, mainDiv[0]);
+        , ()=>this.fn, parent,[fileHolder],fileHolder,savedOpened[this.ownObject.uuid+"Script"]);
+        this.addNewEditObj(this.vals.editableVals, mainDiv[0], savedOpened[this.ownObject.uuid+"Script"]);
     }
     deleteUser(shouldDelete = true) {
         this.file.removeUser(this.ownObject.uuid,shouldDelete);
@@ -225,9 +229,12 @@ class gameScript extends Component {
         this.fn = this.file.data;
         //Re-initiate Object
         //Initiate Object only if it's in the right scene;
-        if(engine.getActiveScene().boxes.indexOf(engine.getfromUUID(this.ownObject.uuid)) > -1) {
-        engine.getfromUUID(this.ownObject.uuid).init()
-        }
+        //Re-initiates all objects so it's more like the client side once loaded
+        engine.getActiveScene().initiateBoxes();
+        // if(engine.getActiveScene().boxes.indexOf(engine.getfromUUID(this.ownObject.uuid)) > -1) {
+        // engine.getfromUUID(this.ownObject.uuid).init()
+        // }
+        
         forceMenuUpdate = true;
     }
     toJson() {
@@ -286,6 +293,9 @@ class gameSprite extends Component {
         let divHolder = createDiv()
         let FileEdit = this.AddFileEdit();
         FileEdit.parent(divHolder);
+        if(!savedOpened[this.ownObject.uuid+"Sprite"]) {
+            savedOpened[this.ownObject.uuid+"Sprite"] = {value:false}
+        }
         let mainDiv = addEditableSprite("Image", (val)=>{
             forceBrowserUpdate = true;
             let actValue = val;
@@ -296,7 +306,7 @@ class gameSprite extends Component {
             }
             return actValue;
         }
-        , ()=>this.fileData.data, parent,[divHolder],divHolder)
+        , ()=>this.fileData.data, parent,[divHolder],divHolder,savedOpened[this.ownObject.uuid+"Sprite"])
     }
     AddFileEdit() {
         let alreadyHasName = this.fileData.references.name;
@@ -334,7 +344,7 @@ class gameSprite extends Component {
         //Will load all sprites and not initialize correctly
         //Load Sprite automatically
         if(!this.fileData.customData) {
-            this.fileData.customData = loadImage("data:image/png;base64," + this.fileData.data.toString());
+            this.fileData.customData = loadImage(this.fileData.data.toString());
         }
         this.setSprite(this.fileData.customData);
         forceMenuUpdate = true;
@@ -350,7 +360,7 @@ class gameSprite extends Component {
         if(this.fileData.customData!==undefined) {
             var _sprite = this.fileData.customData;
         }else {
-            var _sprite = loadImage("data:image/png;base64," + this.fileData.data.toString());
+            var _sprite = loadImage(this.fileData.data.toString());
         }
         this.setSprite(_sprite);
     }
@@ -381,8 +391,20 @@ class gameFile extends Component {
         this.references = {};
         this.UUID = UUID;
         this.type = type;
+        let parsedImage = data.toString();
+        if(type === ".img") {
+            //Check if using old template for image data
+            //And if it's a website
+            console.log(data)
+            if(parsedImage.includes("data:image/")) {
+
+            }else if(!parsedImage.includes("http://") || !parsedImage.includes("https://")){
+                parsedImage = "data:image/png;base64," + parsedImage;
+                console.error("changing image");
+            }
+        }
         console.warn(data);
-        this.data = data.toString();
+        this.data = parsedImage;
         engine.files[UUID] = this;
         this.whoUses = {};
     }
@@ -415,9 +437,37 @@ class gameFile extends Component {
         return this.data = value;
     }
 }
+/*var config = {
+    key: "guyAnimation",
+    frames: this.anims.generateFrameNumbers("guy", {
+      start: 0,
+      end: 8,
+      first: 0
+    }),
+    frameRate: 10,
+    repeat: -1
+  };*/
+class gameSpritesheet{
+    constructor(totWidth,totHeight,spriteWidth,spriteHeight) {
+        this.sWidth = spriteWidth;
+        this.sHeight = spriteHeight;
+        this.tWidth = totWidth;
+        this.tHeight = totHeight;
+    }
+    fromIndex(tileIndex) {
+        //let tileSize = this
+        let xindex = tileIndex % (this.tWidth/this.sWidth);
+        let yindex = (tileIndex - xindex) / (this.tHeight/this.sHeight);
+        return [xindex * this.sWidth, yindex * this.sHeight, this.sWidth, this.sHeight]
+    }
+}
+class gameAnimation{
+
+}
 addComponent("gameScript", gameScript);
 addComponent("gameSprite", gameSprite);
 addComponent("gameFile", gameFile);
+
 function checkifexists(data) {
     for(let fileUUID in engine.files) {
         let file = engine.files[fileUUID];

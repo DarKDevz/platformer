@@ -24,15 +24,7 @@ class movingPlatform extends Box{
 	return [...super.getActualValuesName(),"x1","x2"]
 	}
 	earlyUpdate() {
-		let t_player = {
-		x: player.old.x,
-		y: player.old.y + 1,
-		width: player.size.x,
-		height: player.size.y,
-		}
-		let ground;
-		ground = this.collision(t_player);
-		if(ground && !player.colliding) {player.pos.x -= (this.oldX - this.x)}
+		if(player.grounded && player.groundedId === this.uuid) {player.pos.x -= (this.oldX - this.x)}
 	}
 	lateUpdate() {
 	if(this.x+this.width < this.x2 && this.direction == "r"){this.x += 3;

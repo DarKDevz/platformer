@@ -2,6 +2,7 @@ class GameObject {
     constructor(x, y, tag) {
         this.x = x;
         this.y = y;
+        this.z = 0;
         this.width = 1;
         this.height = 1;
         this.isCollidable = false;
@@ -13,7 +14,11 @@ class GameObject {
         this.uuid = engine.generateUUID();
         this.sprites = [];
         this.shown = {};
+        this.collisionType = 'Circle';
         engine.uuidList[this.uuid] = this;
+    }
+    getCollisionVectors() {
+        return [this,2]
     }
     jsonComponents() {
         let ret = [];
@@ -21,6 +26,10 @@ class GameObject {
             ret.push(comp.toJson());
         }
         return ret;
+    }
+    display(OnlyDraw,noDraw = false) {
+        if(!noDraw){this.draw()}
+        if(!OnlyDraw)this.update();
     }
     init() {
         
@@ -40,9 +49,6 @@ class GameObject {
     }
     getActualValuesName() {
         return ["x", "y"];
-    }
-    display() {
-
     }
     collision(obj, trigger = false) {
         var oX, oY, oW, oH;
