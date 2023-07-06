@@ -7,6 +7,7 @@ class GameObject {
         this.height = 1;
         this.isCollidable = false;
         this.tag = tag;
+        this.scene = "Not set";
         this.components = [];
         this.overrides = {};
         this.savedFuncs = {};
@@ -15,6 +16,7 @@ class GameObject {
         this.sprites = [];
         this.shown = {};
         this.collisionType = 'Circle';
+        this.imageInitialized = false;
         engine.uuidList[this.uuid] = this;
     }
     getCollisionVectors() {
@@ -88,4 +90,20 @@ class GameObject {
     customDraw() {
         point(this.x, this.y)
     }
+    delete() {
+        delete engine.uuidList[this.uuid];
+        this.removeBody()
+    }
+    removeBody() {
+        if(this.body) {
+            engine.world.DestroyBody(this.body)
+            }
+    }
+}
+var Categories = {
+    DEFAULT:0b1,
+    BOX: 0b10,
+    ENEMY:0b100,
+    PLATFORM:0b1000,
+    PLAYER:0b10000
 }

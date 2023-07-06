@@ -7,9 +7,13 @@ class End extends Box{
 	getClassName() {
 	return "End"
 	}
+	init() {
+		super.init();
+		//this.clr = color(255,255,0)
+	}
 	draw() {
-		fill(255,255,0);
-		rect(this.x,this.y,this.width ,this.height)
+		this.clr = color(255,255,0)
+		super.draw();
 	}
 	earlyUpdate() {
 		if(this.collision(player))  {

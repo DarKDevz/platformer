@@ -45,7 +45,7 @@ var editor = CodeMirror.fromTextArea(document.getElementById("popupEditor"), {
             });
 
     function receivePopupText() {
-        var text = decodeURIComponent(location.search.substring(1).split("=")[1]);
+        var text = window.opener.scriptData();
         var beautifiedText = js_beautify(text, {
             indent_size: 2,
         }); // Beautify the text
@@ -78,20 +78,21 @@ var editor = CodeMirror.fromTextArea(document.getElementById("popupEditor"), {
             try {
             let temp = {shown:{}};
             (new Function(beautifiedText)).call(temp);
-            try {
-                window.opener.receivePopupText(removeNewLines);
-            } catch (error) {
-                alert("Couldn't send to window");
-                alert(error);
-                console.error(error);
-            }
-            } catch (error) {
-            alert("script has typeerror:");
-            alert(error)
-            }
-            } catch (error) {
-                alert("syntax mistake:" + error);
-            }
+                try {
+                    window.opener.receivePopupText(removeNewLines);
+                    receivePopupText()
+                } catch (error) {
+                    alert("Couldn't send to window");
+                    alert(error);
+                    console.error(error);
+                }
+                } catch (error) {
+                alert("script has typeerror:");
+                alert(error)
+                }
+                } catch (error) {
+                    alert("syntax mistake:" + error);
+                }
             }
             receivePopupText();
     </script>

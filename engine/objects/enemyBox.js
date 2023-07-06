@@ -4,6 +4,11 @@ class Enemy extends Box{
 	this.tag = "enemyBox";
 	this.typeId = 4;
 	}
+	init() {
+		super.init()
+		
+		if(this.phySprite)this.phySprite.color = color(255,0,0);
+	}
 	getClassName() {
 	return "Enemy"
 	}
@@ -13,7 +18,7 @@ class Enemy extends Box{
 	}
 	earlyUpdate() {
 		if(this.collision(player))  {
-		player.playerDeath();
+		player.playerDeath()
 		}
 	}
 }

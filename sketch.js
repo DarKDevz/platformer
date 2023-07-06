@@ -1586,14 +1586,12 @@ function setup() {
 	canvas.oncontextmenu = function (e) {
 		e.preventDefault();
 	}
-
 	player = new Player();
 	engine = new Engine();
 	ScenesfromObject(sceneObj)
 }
 
 function draw() {
-
 	clear();
 	background(150, 230, 240);
 	//Update

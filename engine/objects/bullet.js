@@ -17,7 +17,7 @@ class Bullet extends GameObject {
         if (obj.isShootable) {
             obj.health--;
         }
-        removeObject(getCurrentBoxes().indexOf(this));
+        removeObject(this.uuid);
     }
     collision(obj) {
         var oX, oY, oW, oH;
@@ -71,7 +71,7 @@ class Bullet extends GameObject {
         const expiryTime = this.startDate + 5000; // 5 seconds expiry time
 
         if (Date.now() >= expiryTime) {
-            removeObject(getCurrentBoxes().indexOf(this))
+            removeObject(this.uuid)
         }
         let t_box_id;
         for (t_box_id of getCurrentBoxes()) {

@@ -7,6 +7,7 @@ function OpenDialog(MainDiv,OnExit=()=>{},headerText=createDiv("Dialog Window"))
     let ExitButton = createButton("X");
     ExitButton.style("cursor:pointer;")
     ExitButton.mousePressed(()=>{
+        setTimeout(()=>{overUI = false},500);
         Holder.remove()
         OnExit()
     });
@@ -21,9 +22,78 @@ function OpenDialog(MainDiv,OnExit=()=>{},headerText=createDiv("Dialog Window"))
     Holder.position((width-offsets.width)/2,(height-offsets.height)/2)
     uiElement(Holder);
 }
+function safeOverride(obj,name,get,set) {
+    if(obj[name]) {
+        console.error("Overriding Existing value from location", name)
+    }
+    obj.__defineGetter__(name,get);
+    obj.__defineSetter__(name,set);
+}
+function Import(obj,location,target=false) {
+    if(!target) {
+    for(let name of Object.keys(obj)) {
+        safeOverride(location,name,()=>{return obj[name]},(_)=>{return obj[name] = _});
+    }
+    }else {
+        if(typeof target === 'string') {
+        if(!obj[target]) return;
+        safeOverride(location,target,()=>{return obj[target]},(_)=>{return obj[target] = _});
+        }else if(target instanceof Array) {
+            for(let name of target) {
+                if(obj[name]) {
+                    safeOverride(location,name,()=>{return obj[name]},(_)=>{return obj[name] = _});
+                }
+            }
+        }
+    }
+}
 function uiElement(element) {
     element.mouseOver(() => overUI = true);
     element.mouseOut(() => overUI = false);
+}
+function handleShape(body) {
+
+}
+function DrawShape(s, pos ,color) {
+    //console.log(s.m_type);
+    switch (s.m_type) {
+        case DrawShape.e_circleShape:
+            console.log("It's a circle")
+            break;
+        case DrawShape.e_edgeShape:
+            console.log("It's an edge")
+            break;
+        case DrawShape.e_polygonShape:
+            //console.log("it's a polygon", s.GetVertices(),pos);
+            //Translate vertices into real vertices
+            let vlist = [];
+            for(let vertice of s.GetVertices()) {
+                vlist.push(DrawShape.Math.b2Math.MulX(pos,vertice));
+            }
+            DrawPolygon(vlist);
+            break;
+    }
+}
+Import(Box2D.Collision.Shapes.b2Shape,DrawShape);
+Import(Box2D.Common,DrawShape,"Math");
+function DrawPolygon(vertices) {
+    //Figure it out
+    beginShape()
+    for(let vertice of vertices) {
+        vertex(vertice.x, vertice.y)
+    }
+    endShape()
+}
+function DrawAll() {
+    for (b = engine.world.m_bodyList;
+        b; b = b.m_next) {
+           xf = b.m_xf;
+           for (f = b.GetFixtureList();
+           f; f = f.m_next) {
+              s = f.GetShape();
+              DrawShape(s, xf, color);
+           }
+        }
 }
 if (Array.prototype.equals)
     console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");

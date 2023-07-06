@@ -1,4 +1,5 @@
-var makingNew = false,
+var editorWindow = null,
+    makingNew = false,
     forceMenuUpdate = false,
     forceBrowserUpdate = false,
     valChanged = new Event("ValueChanged"),
@@ -12,8 +13,7 @@ var makingNew = false,
     button = null,
     selectBox = [],
     Playing = null,
-    Paused = null,
-    pauseButton = null,
+    sceneButton = null,
     addButton = null,
     selectObject = null,
     selectedObjects = [],
@@ -49,6 +49,7 @@ class Editor {
     onUpdate() {
         if (selectBox[1]) {
             let rect1 = new Box(selectBox[0][0], selectBox[0][1], selectBox[1][0] - selectBox[0][0], selectBox[1][1] - selectBox[0][1]);
+            delete engine.uuidList[rect1.uuid];
             fill(0, 0, 0, 25);
             rect(rect1.x, rect1.y, rect1.width, rect1.height);
         }
@@ -56,31 +57,20 @@ class Editor {
         if (!levelMode && lastWasPressed != Pressed && mouseIsPressed && mouseButton === LEFT) {
             selectBox.push([this.mouseCoords().x, this.mouseCoords().y]);
         }
-        if(lastUsedMouse.x&&(abs(mouseX-lastUsedMouse.x)>gridSize||abs(mouseY-lastUsedMouse.y)>gridSize)) {
-            lastUsedMouse = _pmouse;
-        }
-        if (mouseIsPressed && mouseButton === CENTER) {
+        if (mouseIsPressed &&  !makingNew && (mouseButton === CENTER||mouseButton === RIGHT)) {
             let diffX = mouseX - pmouseX
             let diffY = mouseY - pmouseY
-            let actOffset = {
-                x: Math.floor((mouseDiff.x+gridSize/2)/gridSize)*gridSize,
-                y: Math.floor((mouseDiff.y+gridSize/2)/gridSize)*gridSize
-            }
-            if (selectedObjects.length !== 0) {
-                mouseDiff.x += diffX;
-                mouseDiff.y += diffY;
+            mouseDiff = {x:diffX,y:diffY};
+            if (selectedObjects.length !== 0 && mouseButton === CENTER) {
                 for (let t_box_id of selectedObjects) {
                     let t_box = engine.getfromUUID(t_box_id);            
                     if(t_box) {
-                        //Rework later idk
                         t_box.customDraw();
                         let newPos = {x:t_box.x,y:t_box.y}
-                        newPos.x = Math.floor(newPos.x/gridSize)*gridSize
-                        newPos.y = Math.floor(newPos.y/gridSize)*gridSize
-                        if(abs(mouseDiff.x)>gridSize) newPos.x += actOffset.x
-                        if(abs(mouseDiff.y)>gridSize) newPos.y += actOffset.y
+                        newPos.x += mouseDiff.x
+                        newPos.y += mouseDiff.y
                         t_box.offSet(newPos.x, newPos.y, mouseDiff.x, mouseDiff.y);
-                    }else {
+                    }else if(!overUI){
                         selectedObjects.splice(t_box_id,1);
                     }
                 }
@@ -135,7 +125,7 @@ class Editor {
         }
     }
     mouseCoords() {
-        return createVector(round(Playing && !Paused ? mouseX + player.cameraPos.x : mouseX + cameraPos.x), round(Playing && !Paused ? mouseY + player.cameraPos.y : mouseY + cameraPos.y))
+        return createVector(round(mouseX + cameraPos.x), round(mouseY + cameraPos.y))
     }
     transformCoordinates(drawSelect) {
         var x1 = drawSelect[0][0];
@@ -165,7 +155,7 @@ class Editor {
     let drawSelect = selectBox;
     let rect1;
     rect1 = new Box(...this.transformCoordinates(drawSelect));
-
+    delete engine.uuidList[rect1.uuid];
     if (!rect1)
         return;
     if (makingNew)
@@ -173,6 +163,7 @@ class Editor {
     selectedObjects = [];
     for (let t_box_id in engine.getActiveScene().boxes) {
         let t_box = engine.getActiveScene().boxes[t_box_id];
+        if(t_box.collision) {
         let c = t_box.collision(rect1, false);
         if (c) {
             selectedObjects.push(t_box.uuid);
@@ -180,10 +171,11 @@ class Editor {
         }
         t_box.clr = c * 50
             //console.log(c);
+        }
     }
     }
     onResize() {
-        pauseButton.position(windowWidth / 2, 0);
+        sceneButton.position(windowWidth / 2, 0);
         button.position(windowWidth / 2 - 45, 0);
         sideMenu.position(windowWidth - 300, 0);
         ContentBrowserPanel.Holder.size(windowWidth,windowHeight/4);
@@ -198,12 +190,14 @@ class Editor {
                 let resp = newBox[param];
                 if (resp === undefined) {
                     paramResp = prompt(param)
-                    classParameters.push(Math.abs(parseInt(paramResp)) + 1 ? parseInt(paramResp) : paramResp);
+                    classParameters.push(Math.abs(parseFloat(paramResp)) + 1 ? parseFloat(paramResp) : paramResp);
                 } else {
-                    classParameters.push(parseInt(resp) ? parseInt(resp) : resp);
+                    classParameters.push(parseFloat(resp) ? parseFloat(resp) : resp);
                 }
             }
-           engine.getActiveScene().boxes.push(new classes[addSelect.value()](...classParameters));
+            let obj = new classes[addSelect.value()](...classParameters)
+            obj.init();
+            engine.getActiveScene().boxes.push(obj);
         }
     }
     copyObject() {
@@ -234,7 +228,7 @@ class Editor {
         element.mouseOut(() => overUI = false);
     }
     saveMap() {
-        let jsMap = createWriter('t_map_t.js');
+        let jsMap = createWriter('t_map_t.json');
         jsMap.write(MapJson());
         jsMap.close();
     }
@@ -250,14 +244,16 @@ class Editor {
             let LValueIndx =engine.getActiveScene().getActualLevelValues();
             for (let i = 0; i < LValues.length; i += 1) {
                 addMenuInput(LValueNames[i], (val) => {
-                    let actValue = parseInt(val) ? parseInt(val) : val
+                    let actValue = parseFloat(val) ? parseFloat(val) : val
                    engine.getActiveScene()[LValueIndx[i]] = actValue;
                     LValues[i] = actValue;
                 }, () => LValues[i])
             }
             addMenuInput("Grid Size",(value) => {
-                gridSize = parseInt(value)?parseInt(value):gridSize;
+                gridSize = parseFloat(value)?parseFloat(value):gridSize;
             },()=>gridSize)
+        }else {
+            forceMenuUpdate = true;
         }
     }
     pasteObjects() {
@@ -275,7 +271,7 @@ class Editor {
                 }
                 let index =engine.getActiveScene().boxes.push(_obj);
                 index--;
-                obj =engine.getActiveScene().boxes[index];
+                let obj = engine.getActiveScene().boxes[index];
                engine.getActiveScene().boxes[index].clr = 50;
                 let offsetPosX = this.mouseCoords().x;
                 let offsetPosY = this.mouseCoords().y;
@@ -340,9 +336,19 @@ class Editor {
     saveButton.mousePressed(this.saveMap);
     this.uiElement(saveButton);
 
-    pauseButton = this.uiButton('Paused', windowWidth / 2, 0);
-    pauseButton.mousePressed(() => {
-        Paused = !Paused
+    sceneButton = this.uiButton('Scene', windowWidth / 2, 0);
+    sceneButton.mousePressed(() => {
+        let toLoad = prompt("Load Scene:",engine.activeScene+1)
+        if(Boolean(parseInt(toLoad))) {
+            let sceneNum = parseInt(toLoad);
+            if(engine.scene[sceneNum]) {
+                engine.scene[sceneNum].loadLevel()
+            }else {
+                //Add level yourself
+                addLevel([],createVector(0,-500)).loadLevel();
+            }
+        }
+        this.releaseSelectBox();
     });
     sideMenu = createDiv();
     sideMenu.size(300);
@@ -409,10 +415,15 @@ class Editor {
     levelButton.parent('actionMenu');
     this.uiElement(levelButton);
 
-    JsonMap(MapData);
-
     button.mousePressed(() => {
-       engine.getActiveScene().loadLevel();
+        if(editorWindow && !editorWindow.closed) {
+            console.log(editorWindow);
+            editorWindow.editorData = MapJson();
+            editorWindow.doReload()
+        }else {
+        editorWindow = window.open("editor.html");
+        editorWindow.editorData = MapJson();
+        }
         Playing = !Playing;
     });
 
@@ -530,7 +541,7 @@ class Editor {
                 }
             } else {
                 addMenuInput(info[i + 1], (val) => {
-                    let actValue = parseInt(val) ? parseInt(val) : val
+                    let actValue = parseFloat(val) ? parseFloat(val) : val
                     engine.getfromUUID(info[i])[info[i + 3]] = actValue;
                     info[i + 2] = actValue;
                 }, () => info[i + 2])
@@ -543,6 +554,7 @@ var editor = new Editor()
 //Don't touch could break everything
 function accordionMenu(headerText, inputField, name, Opened) {
     let isExpanded = Opened.value;
+    headerText.style("cursor: pointer");
     let UpdateExpansion = () => {
     if (isExpanded) {
         headerText.html("▼" + name);
@@ -556,6 +568,7 @@ function accordionMenu(headerText, inputField, name, Opened) {
     } else {
         headerText.html("►" + name);
         inputField.style("max-height", "0px");
+        inputField.hide();
         setTimeout(() => {
         Opened.value = false;
         inputField.hide();
@@ -576,7 +589,6 @@ function addEditableScript(name, set, get, parentName = "sideMenu", additionalDi
 replaceButton = false,opener) {
   let divHolder = createDiv();
   let headerText = createSpan("Script Component").parent(divHolder);
-  headerText.style("cursor: pointer");
   let _get = get;
   let inputField = createDiv();
   inputField.child(...additionalDiv);
@@ -588,7 +600,10 @@ replaceButton = false,opener) {
   inp = createButton("Script").parent(inputField);
   }
   inp.mousePressed(() => {
-    var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get().toString()), "Popup Window", "width=400,height=300");
+    var popupWindow = window.open("popup.html", "Popup Window", "width=400,height=300");
+    window.scriptData = function(){
+        return _get().toString()
+    }
     window.receivePopupText = (text) => {
       console.log(text);
       set(text);
@@ -613,7 +628,6 @@ function addEditableSprite(name, set, get,
      ) {
   let divHolder = createDiv();
   let headerText = createSpan("Sprite Component").parent(divHolder);
-  headerText.style("cursor: pointer");
   let _get = get;
   let inputField = createDiv();
   inputField.child(...additionalDivs);
@@ -649,13 +663,48 @@ function addMenuInput(name, set, get, par = 'sideMenu') {
     let divHolder = createDiv();
     divHolder.html();
     let _span = createSpan(name + ": ").parent(divHolder);
+    //Add option for different types of value types
+    //Strings,Numbers,Booleans,Functions,Regex(?)
     let inp = createInput(get().toString()).style("opacity:0.5;")
-    inp.parent(divHolder).input(() => {
-        set(inp.value());
-    });
-    divHolder.elt.addEventListener("ValueChanged", () => {
-        inp.value(get())
-    });
+    switch (typeof get()) {
+        case "number":
+            //Only returns float values
+            inp.parent(divHolder).input(() => {
+                let ogVal = get();
+                let parsed = parseFloat(inp.value())
+                let newVal = Boolean(parsed)?parsed:ogVal;
+                set(newVal);
+            });
+            divHolder.elt.addEventListener("ValueChanged", () => {
+                inp.value(get())
+            });
+            break;
+        case "string":
+            inp.parent(divHolder).input(() => {
+                set(inp.value());
+            });
+            divHolder.elt.addEventListener("ValueChanged", () => {
+                inp.value(get())
+            });
+            break;
+        case "boolean":
+            inp.remove();
+            _span.remove();
+            inp = createCheckbox(name,get())
+            inp.parent(divHolder).changed(() => {
+                set(inp.checked());
+            });
+            divHolder.elt.addEventListener("ValueChanged", () => {
+                inp.checked(get())
+            });
+            break;
+        default:
+            console.error(typeof get(), "isn't a supported editable value");
+            inp.remove();
+            _span.remove();
+            break;
+
+    }
     infoDivs.push(divHolder);
     infoDivs[infoDivs.length - 1].parent(par)
 }

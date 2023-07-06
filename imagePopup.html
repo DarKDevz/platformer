@@ -24,7 +24,7 @@
                     };
 
                     // Set the source of the image to the base64 data
-            image.src = "data:image/jpeg;base64,"+this._ImageData();
+            image.src = this._ImageData();
         }
         function handleFile(input) {
             let file = input.files[0];

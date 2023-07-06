@@ -13,36 +13,86 @@ class Player {
         this.groundedId = null;
         this.shootingDelay = 300; // Delay between shots in milliseconds
         this.lastShotTime = 0; // Time of the last shot in milliseconds
-        this.collisionType = 'Rect'
+        this.collisionType = 'Rect';
+        this.groundList = [];
+        this.playerAABB;
+        this.savedX = 0;
+        this.collisions = [];
+        this.skipNext = false;
+        //Enable Running physics
+        //world.gravity.y = 5;
     }
     getCollisionVectors() {
         return [this.pos,this.size]
     }
     display(shouldRun = true) {
         if(!shouldRun) return 1;
-        fill(0)
-        rect(this.pos.x, this.pos.y, this.size.x, this.size.y);
+        fill(125)
+        //rect(this.pos.x, this.pos.y, this.size.x, this.size.y);
+        //if(this.body) DrawAll()
+        //DrawShape(this.body.GetFixtureList().GetShape(),this.body.m_xf)
+        //this.phySprite.draw();
+        //fill(125);
+        //rect(this.pos.x, this.pos.x, this.size.x, this.size.y);
+        //this.groundDetector.draw();
+        //this.SideDetector.draw();
+        if(!this.body){
+            let bodyDef = new b2BodyDef;
+            var fixDef = new b2FixtureDef;
+            fixDef.density = 1.0;
+            fixDef.friction = 0.5;
+            fixDef.restitution = 0;
+            bodyDef.type = b2Body.b2_dynamicBody;
+            fixDef.shape = new b2PolygonShape;
+                   fixDef.shape.SetAsBox(
+                         this.size.x/2 //half width
+                      ,  this.size.y/2 //half height
+                   );
+            bodyDef.position.x = this.posCenter().x;
+            bodyDef.position.y = this.posCenter().y;
+            
+            //this.body = new p2.Body({mass:0,position:[this.x,-this.y],fixedRotation : true})
+            //this.body.addShape(new p2.Box({ width: this.width,height:this.height}));
+            this.body = engine.world.CreateBody(bodyDef)
+            this.body.CreateFixture(fixDef);
+            this.body.SetFixedRotation(true);
+            //Continuous Collision Detection
+            this.body.SetBullet(true);
+            //User data for contact listener
+            this.body.SetUserData(this);
+            //Custom gravity scale i made
+            this.body.gravityScale = new b2Vec2(0,0);
+            //PLAYER AABB for collision detection
+            this.playerAABB = new b2AABB();
+            this.playerAABB.lowerBound.Set(this.pos.x, this.pos.y);
+            this.playerAABB.upperBound.Set(this.pos.x + this.size.x, this.pos.y + this.size.y);;
+            //We override this so we can use our own physics things
+            engine.physics = true;
+        }
     }
     update() {
         this.old = this.pos.copy();
         //controlller
         let overui = window['overUI'] !== undefined ? overUI : false;
+        let notDoingInput = document.activeElement === document.body || document.activeElement === canvas;
+        if(notDoingInput) {
         if (mouseIsPressed && !overui) {
             //console.log(overui)
             this.shootTowards()
         }
-        let right,left,up,down = false;
+        let right,left,up,down;
         right = keyIsDown(68) || keyIsDown(39);
         left = keyIsDown(65) || keyIsDown(37);
         up = keyIsDown(87) || keyIsDown(38);
         down = keyIsDown(16) || keyIsDown(40);
         //Space
         if (up && this.godMode) {
-            this.vel.y = -6.7
+            this.vel.y = -7
         }
         if (up && this.grounded) {
             this.grounded = false;
-            this.vel.y = -6.7;
+            this.vel.y = -7;
+            //this.phySprite.vel.y = this.vel.y;
         }
         if (left) {
             this.vel.x -= 5;
@@ -59,16 +109,17 @@ class Player {
         if (down) {
             let SizeY = this.size.y;
             this.size.y = lerp(this.size.y, 45, .5);
-            this.pos.y -= this.size.y - SizeY;
+            this.pos.y += SizeY - this.size.y;
         } else if (this.size.y != 70) {
             let SizeY = this.size.y;
             this.size.y = lerp(this.size.y, 70, .5);;
-            this.pos.y -= this.size.y - SizeY;
-        }
+            this.pos.y += SizeY - this.size.y;
+         }
+    }
         //Y vel
         if (this.grounded) this.vel.y = 0;
-        else { this.vel.y += .1 }
-        this.pos.y += 1 * this.vel.y * (deltaTime / 16)
+        else{this.vel.y += .1}
+        this.pos.y += 1 * this.vel.y;
             //if(this.grounded && !this.colliding) this.grounded = false;
             //X vel
         this.vel.x = this.vel.x * .7
@@ -78,11 +129,21 @@ class Player {
         if (this.pos.y >engine.getActiveScene().maxPos) {
             this.playerDeath();
         }
+        if(this.body) {
+            this.body.SetLinearVelocity({x:this.vel.x,y:this.vel.y})
+            this.body.SetPosition(this.posCenter())
+            this.body.GetFixtureList().GetShape().SetAsBox(
+                this.size.x/2 //half width
+             ,  this.size.y/2 //half height
+          );
+        }
     }
     playerDeath() {
         this.pos =engine.getActiveScene().pos.copy();
         this.size = createVector(30, 70);
+        //this.phySprite.pos = this.posCenter();
         this.vel = createVector(0, 0);
+        //this.phySprite.vel = this.vel;
         this.old = createVector(0, 0);
     }
     collision(id) {
@@ -113,7 +174,7 @@ class Player {
         if (pos_center.y > t_center.y) {
             this.vel.y = 0;
             let distance = (this.size.copy().div(2).y + bsize.copy().div(2).y) + (t_center.y - pos_center.y);
-            this.pos.y += distance;
+            this.pos.y += distance+1;
         }
     }
     xCollision(id) {
@@ -126,12 +187,12 @@ class Player {
         if (pos_center.x < t_center.x) {
             this.vel.x = 0;
             let distance = (this.size.copy().div(2).x + bsize.copy().div(2).x) - (t_center.x - pos_center.x);
-            this.pos.x -= distance;
+            this.pos.x -= distance+2;
         }
         if (pos_center.x > t_center.x) {
             this.vel.x = 0;
             let distance = (this.size.copy().div(2).x + bsize.copy().div(2).x) + (t_center.x - pos_center.x);
-            this.pos.x += distance;
+            this.pos.x += distance+2;
         }
     }
     onCollide(id) {
@@ -142,6 +203,18 @@ class Player {
         let tcenter = this.center(bsize, bpos);
         let pcenter = this.center(this.size, this.old);
         if (abs(pcenter.x - tcenter.x) > (bsize.x / 2 + this.size.x / 2) - 1) { this.xCollision(id) } else { this.yCollision(id) }
+    }
+    collisionStart(uuid) {
+        this.collisions.push(uuid);
+        //this.onCollide(uuid);
+    }
+    collisionEnd(uuid) {
+        let id = this.collisions.indexOf(uuid);
+        this.collisions.splice(id,1);
+        if(uuid === this.groundedId) {
+            this.grounded = false;
+        }
+        //console.log(this.groundedId,uuid);
     }
     shootTowards() {
         let toMouse = createVector(-(width / 2 - mouseX), -(height / 2 - mouseY));
@@ -159,12 +232,32 @@ class Player {
             this.lastShotTime = currentTime;
         }
     }
+    foundFixture(fixture) {
+        if(!(fixture.GetBody().GetUserData() instanceof Player)) {
+            console.log(fixture.GetBody().GetUserData());
+        }
+    }
     checkCollisions() {
+        //Platforming engine strips
+        //Away all physics code because
+        //It's way too complicated to implement an object that follows that
+        for(let uuid of this.groundList) {
+            if(this.collision(uuid)) {this.onCollide(uuid);}
+            else {
+                this.groundList.splice(this.groundList.indexOf(uuid),1)
+                if(this.grounded&&this.groundedId===uuid) {
+                    this.grounded = false;
+                }
+            }
+        }
         let found = false;
         let groundExists = false;
         let t_box_id;
-        for (t_box_id in engine.getActiveScene().boxes) {
-            let box = engine.getActiveScene().boxes[t_box_id];
+        let wasColliding = this.grounded;
+        if(wasColliding) {
+            this.pos.y--;
+        }
+        for (let box of engine.getActiveScene().boxes) {
             let c = this.collision(box.uuid);
             if (c) {
                 this.collidedId = box.uuid;
@@ -180,6 +273,9 @@ class Player {
                 if (this.grounded) this.groundedId = box.uuid;
                 this.pos.y--;
             }
+        }
+        if(wasColliding) {
+            this.pos.y++;
         }
         //If ground was deleted
         if(!groundExists) {

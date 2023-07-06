@@ -1,128 +1,74 @@
 // var engine.scene = [];
 // var engine.activeScene;
 //var engine = new Engine();
+
+//import p2 = require("../engine/collision/p2");
+
+//import World = require("../engine/collision/p2");
+
+//import World = require("../engine/collision/p2");
+
 //Support for Older Projects
-class Engine {
-    constructor() {
-        this.scene = [];
-        this.activeScene;
-        this.files = {};
-        this.uuidList = {};
-        this.hasUUID = false;
-        this.assignedUUID = 0;
-        this.cameraPos = {x:0,y:0};
-        let _cList = engine.componentList?engine.componentList:{};
-        this.componentList = Object.assign({},engine.componentList?engine.componentList:{});
-    }
-    deleteGameFile(id,value = false) {
-        delete this.files[this.getByReference(id,value).UUID]
-    }
-    getByReference(id,value=false) {
-        if(this.files[id]) {
-            return this.files[id];
-        }else {
-            for(let fileUUID in this.files) {
-                let file = this.files[fileUUID];
-                if(!value) {
-                    for(let type in file.references) {
-                        let reference = file.references[type];
-                        if(reference == id) return file;
-                    }
-                }
-                if(file.references[id]===value) return file;
-            }
-            return false;
-        }
-    }
-    customFileUUID(fileType) {
-        if(this.hasUUID) {
-            this.hasUUID = false;
-            return this.assignedUUID;
-        }
-        let fileName = Array.from(fileType);
-        fileName.shift();
-        fileName = fileName.toString().replaceAll(",","")
-        var UUID = fileName+"file";
-        let stack = -1;
-        while(this.files[UUID]) {
-            stack++;
-            UUID = fileName+"file"+stack;
-            if(stack>=99999999) {
-                throw new Error("Stack exceeded! Math.random is broken or uuid list is filled");
-            }
-        }
-        return UUID;
-    }
-    assignUUID(UUID) {
-        this.hasUUID = true;
-        this.assignedUUID = UUID;
-    }
-    getfromUUID(UUID) {
-        return this.uuidList[UUID];
-    }
-    getActiveScene() {
-        return this.scene[this.activeScene];
-    }
-    changeUUID(ogUUId,newUUID) {
-        let ogVal = this.uuidList[ogUUId];
-        delete this.uuidList[ogUUId];
-        this.uuidList[newUUID] = ogVal;
-        return this.uuidList[newUUID];
-    }
-    generateUUID() {
-        if(this.hasUUID) {
-            this.hasUUID = false;
-            return this.assignedUUID;
-        }
-        var UUID = "0x"+(Math.random()*99999999999999999).toString(16);
-        let stack = 0;
-        while(this.uuidList[UUID]) {
-            stack++;
-            UUID = "0x"+(Math.random()*99999999999999999).toString(16);
-            if(stack>=99999999) {
-                throw new Error("Stack exceeded! Math.random is broken or uuid list is filled");
-            }
-        }
-        return UUID;
-    }
-}
+//All needed libraries
+//To know which library you need look
+//into Box2D Flash documentation
+//go into indexes and search for what package you need
+Import(Box2D.Dynamics,this)
+Import(Box2D.Dynamics.Joints,this,"b2MouseJointDef")
+Import(Box2D.Collision.Shapes,this)
+Import(Box2D.Collision,this,"b2AABB")
+Import(Box2D.Common.Math,this,"b2Vec2")
 function getCurrentBoxes() {
     return engine.getActiveScene().boxes
 }
 function deleteUser(obj) {
+    if(!obj) return;
+    if(!obj.components) return;
     let components = obj.components;
     for(let component of components) {
         //Don't remove files that aren't used
         component.deleteUser(false);
     }
 }
+function reloadcurrent() {
+    for(let scene of engine.scene) {
+        for(let boxesId in scene.boxes ) {
+            if(typeof scene.boxes[boxesId] === "object") {
+                if(engine.uuidList[scene.boxes[boxesId].uuid] === undefined) {
+                    scene.boxes.splice(boxesId,1);
+                }
+            }
+        }
+    }
+}
 function removeObject(objId) {
     if(typeof objId === "string" && objId.startsWith("0x")) {
         //it's passing an UUID, delete accordingly
         let obj = engine.uuidList[objId];
+        if(!obj) return;
         deleteUser(obj)
+        obj.delete()
         let sceneId = engine.getActiveScene().boxes.indexOf(obj)
-        delete engine.uuidList[objId];
-        engine.getActiveScene().boxes.splice(sceneId,1);
-        engine.getActiveScene().boxes = getCurrentBoxes().filter(Boolean);
+        //delete engine.uuidList[objId];
+        reloadcurrent();
     }else if(typeof objId === "object") {
         deleteUser(objId);
+        if(!objId) return;
         let sceneId = engine.getActiveScene().boxes.indexOf(objId)
-        delete engine.uuidList[objId.uuid];
-        engine.getActiveScene().boxes.splice(sceneId,1);
-        engine.getActiveScene().boxes = getCurrentBoxes().filter(Boolean);
+        objId.delete()
+        //delete engine.uuidList[objId.uuid];
+        reloadcurrent()
     }
     else {
     let obj = engine.getActiveScene().boxes[objId]
     if(!obj) return;
     deleteUser(obj)
-    delete engine.uuidList[obj.uuid];
-    delete engine.getActiveScene().boxes[objId];
-    engine.getActiveScene().boxes = getCurrentBoxes().filter(Boolean);
+    engine.uuidList[obj.uuid].delete();
+    reloadcurrent();
     }
 }
 
-function addObj(ind, arr) {
+function addObj(ind, arr, sceneId) {
     const objectMap = {
         0: Box,
         1: End,
@@ -131,17 +77,18 @@ function addObj(ind, arr) {
         4: Enemy,
         5: Interactive
     };
-
-    return new(objectMap[ind])(...arr);
+    let obj = new(objectMap[ind])(...arr);
+    obj.scene = sceneId;
+    return obj;
 }
 function ScenesfromObject(levelsObject) {
-    let t_levels = [];
+    let t_levels = {};
     var newLevels = levelsObject;
     if(newLevels.file) {
         for(let file of newLevels.file) {
             for(let UUID in file) {
                 engine.assignUUID(UUID);
-                console.warn(file[UUID])
+                //console.warn(file[UUID])
                 if(typeof file[UUID] === "object") {
                     addGameFile(file[UUID].data,file[UUID].type,file[UUID].references?file[UUID].references:{});
                 }else {
@@ -156,21 +103,21 @@ function ScenesfromObject(levelsObject) {
         delete newLevels.version;
     }
     for (let level_id in newLevels) {
-        console.log(level_id);
+        //console.log(level_id);
         if (!level_id.includes("l") && !level_id.includes('c')) {
             let newLevel = newLevels[level_id];
             let t_boxes = [];
             for (let object of newLevel) {
                 let _objInd = object.shift()
-                t_boxes.push(addObj(_objInd, object))
+                t_boxes.push(addObj(_objInd, object,level_id))
             }
-            t_levels.push(t_boxes);
+            t_levels[level_id]= t_boxes;
             if (!newLevels[level_id + "l"]) {
                 addLevel(t_boxes, createVector(400, -10));
             }
         } else if (level_id.includes("l")) {
             let extras = newLevels[level_id];
-            console.log(newLevels[level_id]);
+            //console.log(newLevels[level_id]);
             addLevel(t_levels[extras[0]], createVector(extras[1], extras[2]), extras[3]);
         } else {
             for (let ObjwithComponents of newLevels[level_id]) {
@@ -190,7 +137,8 @@ function ScenesfromObject(levelsObject) {
                     for (let component of components) {
                         var level = engine.scene[level_id.slice(0, -1)];
                         var box = level.boxes[BoxId];
-                        var componentConstructor = engine.componentList[component.name];
+                        box.scene = level.ind;
+                        var componentConstructor = Engine.componentList[component.name];
                         var paramObj = {}
                         paramObj.obj = box;
                         for (let _param in component.params) {
@@ -199,14 +147,14 @@ function ScenesfromObject(levelsObject) {
                         //paramObj.fn = component.params.fn
                         var newComponent = new componentConstructor({...paramObj });
                         _componentList.push(newComponent);
-                        console.log(newComponent);
+                        //console.log(newComponent);
                     }
                     var box = level.boxes[BoxId];
                     box.components = _componentList;
                 }
                 }
             }
-            console.log(newLevels[level_id]);
+            //console.log(newLevels[level_id]);
         }
     }
 
@@ -219,14 +167,35 @@ function JsonMap(file) {
     let cList = engine.componentList;
     engine = new Engine();
     engine.componentList = cList;
-    ScenesfromObject(JSON.parse(file.data))
+    if(typeof file.data === "object") {
+        ScenesfromObject(file.data);
+    }else {
+        ScenesfromObject(JSON.parse(file.data))
+    }
 }
 class Level {
     constructor(arr, pos, maxPos) {
+        let eventify = function(arr, callback) {
+            arr.push = function(e) {
+                e.init();
+                let ret = Array.prototype.push.call(arr, e);
+                callback(e);
+                return ret;
+            };
+        };
         this.boxes = arr;
+        eventify(this.boxes,(box)=>{
+            box.scene = this.ind.toString();
+            //console.error(box.sprites);
+            //if(box.sprites.length === 0)box.init();
+        })
         this.ind = engine.scene.length;
         this.pos = pos;
         this.maxPos = maxPos;
+    }
+    addObj(box) {
+        box.init();
+        this.boxes = [...this.boxes,box];
     }
     customDraw(shouldRun = true) {
         if(!shouldRun) return 1;
@@ -239,6 +208,7 @@ class Level {
         stroke(0);
     }
     display(OnlyDraw = false) {
+        
         translate(-engine.cameraPos.x, -engine.cameraPos.y)
         //Call without drawing
         //Do Update First Only if you can
@@ -265,9 +235,17 @@ class Level {
             let sorted = [...drawable].sort((a,b)=>{
                 return a.z-b.z
             })
+            fill(125);
+            DrawAll();
             for (let t_box of sorted) {
-                    t_box.display(true,false);
+                    t_box.display(OnlyDraw,false);
             }
+            if(engine.physics) {
+            engine.world.Step(1 / 60, 10, 10);
+            //engine.world.DrawDebugData();
+            engine.world.ClearForces();
+            }
+
     }
     lateUpdate(shouldRun = true) {
         if(!shouldRun) return 1;
@@ -311,11 +289,20 @@ class Level {
         player.colliding = false;
         player.collidedId = null;
         player.vel = createVector(0, 0);
+        if(engine.activeScene !== undefined) {
+            for(let box of engine.getActiveScene().boxes) {
+                box.removeBody();
+            }
+        }
         engine.activeScene = this.ind;
         //Call init function of each;
         this.initiateBoxes();
+        // let body = new p2.Body({mass:0,position:[0,-this.maxPos]})
+        // body.addShape(new p2.Plane())
+        // engine.world.addBody(body);
     }
     initiateBoxes() {
+        //console.error(this.boxes);
         for (let t_box of this.boxes) {
             t_box.init();
         }

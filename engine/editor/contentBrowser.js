@@ -26,85 +26,97 @@ function changeName(_file) {
     }
     }
 }
+function jsFile(file) {
+    let typeOfFile = file.type;
+    let _file = file;
+    let _get = ()=>{return file.data}
+    let set = (file)=>{
+        for(let ObjId in _file.whoUses) {
+            let script = _file.whoUses[ObjId];
+            script.loadFile(file);
+        }
+    };
+    let alreadyHasName = _file.references.name;
+    let buttonName = alreadyHasName?alreadyHasName:_file.UUID
+    buttonName = buttonName+typeOfFile
+    let inp = createButton(buttonName).parent(ContentBrowserPanel.HUD);
+    inp.elt.draggable = "true";
+    inp.elt.ondragstart = (event)=>{
+        event.dataTransfer.setData("UUID",file.UUID);
+        console.log(file);
+        }
+    inp.mousePressed(() => {
+    if(mouseButton === "right") {
+        changeName(_file);
+    }else {
+    window.mouseReleased = () => {
+    window.mouseReleased = () => {};
+    var popupWindow = window.open("popup.html", "Popup Window", "width=400,height=300");
+    window.scriptData = function(){
+        return _get().toString()
+    }
+    window.receivePopupText = (text) => {
+        console.warn(text);
+        _file.data = text;
+        set(_file);
+        _get = () => text;
+        };}
+    }
+    });
+    inp.size(140,140);
+    ContentBrowserPanel.Divs.push(inp);
+}
+function imgFile(file) {
+    let _file = file;
+    let img = createImg(_file.data).parent(ContentBrowserPanel.HUD);
+    img.elt.draggable = "true";
+    img.elt.ondragstart = (event)=>{
+        event.dataTransfer.setData("UUID",_file.UUID);
+        console.log(_file);
+    }
+    let _get = ()=>{return _file.data}
+    img.mousePressed(() => {
+        console.log(mouseButton);
+        if(mouseButton === "right") {
+            changeName(_file);
+        }else {
+            window.mouseReleased = () => {
+                this.mouseReleased = ()=>{}
+        let popup = window.open('imagePopup.html', '_blank', 'width=400,height=400');
+        popup._ImageData = () =>{
+            return _get();
+        }    
+        window.jsonImage = (text) => {
+            console.warn(text);
+            forceBrowserUpdate = true;
+            //_file.loadFile(addGameFile(val.imageb64,'.img'));
+            _file.data = text.imageb64;
+            //Remove Sprite definition so it reloads it correctly
+            _file.customData = undefined;
+            console.log(_file.whoUses);
+            for(let uuid in _file.whoUses) {
+                let _sprite = _file.whoUses[uuid];
+                console.log(_sprite);
+                _sprite.loadFile(_file);
+                console.log(_sprite);
+            }
+            _get = ()=>{return text};
+            };
+            }
+        }
+      });
+    img.size(140,140);
+    ContentBrowserPanel.Divs.push(img);
+}
 function readTypeAndName() {
     for(let nameOfFile in ContentBrowserPanel.files) {
         let _file = ContentBrowserPanel.files[nameOfFile];
         let typeOfFile = _file.type;
-        console.warn(nameOfFile+typeOfFile);
+        //console.warn(nameOfFile+typeOfFile);
         if(typeOfFile === ".js") {
-            let _get = ()=>{return ContentBrowserPanel.files[nameOfFile].data}
-            let set = (file)=>{
-                for(let ObjId in _file.whoUses) {
-                    let script = _file.whoUses[ObjId];
-                    script.loadFile(file);
-                }
-            };
-            let alreadyHasName = _file.references.name;
-            let buttonName = alreadyHasName?alreadyHasName:_file.UUID
-            buttonName = buttonName+typeOfFile
-            let inp = createButton(buttonName).parent(ContentBrowserPanel.HUD);
-            inp.elt.draggable = "true";
-            inp.elt.ondragstart = (event)=>{
-                event.dataTransfer.setData("UUID",ContentBrowserPanel.files[nameOfFile].UUID);
-                console.log(ContentBrowserPanel.files[nameOfFile]);
-            }
-            inp.mousePressed(() => {
-                if(mouseButton === "right") {
-                    changeName(_file);
-                }else {
-                    window.mouseReleased = () => {
-                        window.mouseReleased = () => {};
-                        var popupWindow = window.open("popup.html?text=" + encodeURIComponent(_get().toString()), "Popup Window", "width=400,height=300");
-                        window.receivePopupText = (text) => {
-                        console.warn(text);
-                        _file.data = text;
-                        set(_file);
-                        _get = () => text;
-                };}
-            }
-            });
-            inp.size(140,140);
-            ContentBrowserPanel.Divs.push(inp);
+            jsFile(_file);
         }else if(typeOfFile === ".img") {
-            let img = createImg(_file.data).parent(ContentBrowserPanel.HUD);
-            img.elt.draggable = "true";
-            img.elt.ondragstart = (event)=>{
-                event.dataTransfer.setData("UUID",ContentBrowserPanel.files[nameOfFile].UUID);
-                console.log(ContentBrowserPanel.files[nameOfFile]);
-            }
-            let _get = ()=>{return ContentBrowserPanel.files[nameOfFile].data}
-            img.mousePressed(() => {
-                console.log(mouseButton);
-                if(mouseButton === "right") {
-                    changeName(_file);
-                }else {
-                    window.mouseReleased = () => {
-                        this.mouseReleased = ()=>{}
-                let popup = window.open('imagePopup.html', '_blank', 'width=400,height=400');
-                popup._ImageData = () =>{
-                    return _get();
-                }    
-                window.jsonImage = (text) => {
-                    console.warn(text);
-                    forceBrowserUpdate = true;
-                    //_file.loadFile(addGameFile(val.imageb64,'.img'));
-                    _file.data = text.imageb64;
-                    //Remove Sprite definition so it reloads it correctly
-                    _file.customData = undefined;
-                    console.log(_file.whoUses);
-                    for(let uuid in _file.whoUses) {
-                        let _sprite = _file.whoUses[uuid];
-                        console.log(_sprite);
-                        _sprite.loadFile(_file);
-                        console.log(_sprite);
-                    }
-                    _get = ()=>{return text};
-                    };
-                    }
-                }
-              });
-              img.size(140,140);
-              ContentBrowserPanel.Divs.push(img);
+            imgFile(_file);
         }
     }
     ContentBrowserPanel.Main.elt.scrollTop = oldScroll;

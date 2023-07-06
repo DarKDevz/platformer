@@ -10,6 +10,34 @@ class Box extends GameObject {
         this.isCollidable = true;
         this.collisionType = 'Rect';
     }
+    init() {
+        if(!this)return;
+        if(!this.height)return;
+        if(!this.width)return;
+        if(this.width && this.height) {
+            //Avoid making double physics body if initializing twice
+        if(!this.body) {
+        let bodyDef = new b2BodyDef;
+        var fixDef = new b2FixtureDef;
+        fixDef.density = 1.0;
+        fixDef.friction = 0.5;
+        fixDef.restitution = 0;
+        bodyDef.type = b2Body.b2_staticBody;
+        fixDef.shape = new b2PolygonShape;
+        let hw = this.width/2;
+        let hh = this.height/2;
+        fixDef.shape.SetAsBox(
+            hw //half width
+          , hh //half height
+       );
+        bodyDef.position.x = this.x+hw;
+        bodyDef.position.y = this.y+hh;
+        this.body = engine.world.CreateBody(bodyDef);
+        this.body.SetUserData(this);
+        this.fixture = this.body.CreateFixture(fixDef);
+        }
+        }
+    }
     getCollisionVectors() {
     return [this,{x:this.width,y:this.height}]
     }
