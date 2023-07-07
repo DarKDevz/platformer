@@ -364,12 +364,16 @@ class Editor {
     onSetup() {
         button = this.uiButton('Play', windowWidth / 2 - 45, 0);
     this.uiElement(button);
+    Engine.removeListeners.push((obj)=>{
+        shouldUpdateLevels = true;
+    })
     this.fromReference("leftHolder")
     this.fromReference("bottomDiv")
     inputFile = createFileInput(
         (file)=>{
             forceBrowserUpdate = true;
             forceMenuUpdate = true;
+            shouldUpdateLevels = true;
             JsonMap(file)
         });
     //Fixes some cross platform bugs
