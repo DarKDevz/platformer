@@ -38,6 +38,9 @@ var editorWindow = null,
     infoIndexes = [],
     addSelect = null,
     id = null,
+    openerState = {};
+    shouldUpdateLevels = true,
+    sceneHolder = [],
     ContentBrowserPanel = {
         set files(value) { return engine.files = value},
         get files() {return engine.files},
@@ -46,6 +49,12 @@ var editorWindow = null,
     OldFiles = [];
 class Editor {
     constructor() {}
+    fromReference(id) {
+        let _ = createDiv()
+        _.remove()
+        _.elt = document.getElementById(id)
+        this.uiElement(_)
+    }
     onUpdate() {
         if (selectBox[1]) {
             let rect1 = new Box(selectBox[0][0], selectBox[0][1], selectBox[1][0] - selectBox[0][0], selectBox[1][1] - selectBox[0][1]);
@@ -123,6 +132,56 @@ class Editor {
             readTypeAndName()
             }
         }
+        if(shouldUpdateLevels) {
+            shouldUpdateLevels = false;
+            console.log(engine.scene);
+            let leftDiv = document.getElementById("leftDiv");
+            for(let oldScene of sceneHolder) {
+                oldScene.remove()
+            }
+            //Paragraph to show everything nicely
+            let p = createP()
+            p.parent(leftDiv);
+            sceneHolder.push(p);
+            for(let scene of engine.scene) {
+                let sceneBtn = createDiv()
+                let headerText = createDiv()
+                headerText.parent(sceneBtn)
+                let inputField = createDiv();
+                inputField.parent(sceneBtn)
+                if(!openerState[scene.ind]) {
+                    openerState[scene.ind] = {value: false};
+                }
+                headerText.doubleClicked(()=>{
+                    if(engine.activeScene !== scene.ind) {
+                        scene.loadLevel();
+                        cameraPos.x = scene.pos.x-canvas.width/2;
+                        cameraPos.y = scene.pos.y-canvas.height/2;
+                    }
+                })
+                accordionMenu(headerText,inputField,"Scene: "+scene.ind,openerState[scene.ind]);
+                for(let box of scene.boxes) {
+                    let _box = createDiv(box.constructor.name);
+                    _box.mousePressed(()=>{
+                        if(engine.activeScene === scene.ind) {
+                            selectedObjects = [box.uuid]                        
+                            cameraPos.x = box.x-canvas.width/2;
+                            cameraPos.y = box.y-canvas.height/2;
+                        }
+                    })
+                    _box.doubleClicked(()=>{
+                        if(engine.activeScene !== scene.ind) {
+                            scene.loadLevel();
+                            setTimeout(()=>{selectedObjects = [box.uuid]},500);
+                        }
+                    })
+                    _box.parent(inputField);
+                    console.log(inputField);
+                }
+                sceneBtn.parent(leftDiv);
+                sceneHolder.push(sceneBtn);
+            }
+        }
     }
     mouseCoords() {
         return createVector(round(mouseX + cameraPos.x), round(mouseY + cameraPos.y))
@@ -178,8 +237,8 @@ class Editor {
         sceneButton.position(windowWidth / 2, 0);
         button.position(windowWidth / 2 - 45, 0);
         sideMenu.position(windowWidth - 300, 0);
-        ContentBrowserPanel.Holder.size(windowWidth,windowHeight/4);
-        ContentBrowserPanel.Holder.position(0,windowHeight-windowHeight/4);
+        //ContentBrowserPanel.Holder.size(windowWidth,windowHeight/4);
+        //ContentBrowserPanel.Holder.position(0,windowHeight-windowHeight/4);
     }
     releaseSelectBox() {
         selectBox = [];
@@ -305,7 +364,8 @@ class Editor {
     onSetup() {
         button = this.uiButton('Play', windowWidth / 2 - 45, 0);
     this.uiElement(button);
-
+    this.fromReference("leftHolder")
+    this.fromReference("bottomDiv")
     inputFile = createFileInput(
         (file)=>{
             forceBrowserUpdate = true;
@@ -358,7 +418,9 @@ class Editor {
     sideMenu.position(windowWidth - sideMenu.size().width, 0);
     sideMenu.id('sideMenu');
     this.uiElement(sideMenu);
+    let holdAll = document.getElementById("bottomDiv");
     ContentBrowserPanel.Holder = createDiv();
+    ContentBrowserPanel.Holder.parent(holdAll);
     ContentBrowserPanel.Main = createDiv();
     ContentBrowserPanel.Main.parent(ContentBrowserPanel.Holder);
     let _ = createDiv()
@@ -382,11 +444,11 @@ class Editor {
     _.parent(ContentBrowserPanel.Main);
     ContentBrowserPanel.HUD = createDiv();
     ContentBrowserPanel.HUD.parent(ContentBrowserPanel.Main)
-    ContentBrowserPanel.Holder.size(windowWidth,windowHeight/4);
+    //ContentBrowserPanel.Holder.size(windowWidth,windowHeight/4);
     ContentBrowserPanel.Holder.class('contentBrowser');
     ContentBrowserPanel.HUD.style('display: flex; align-items: center; flex-flow: row wrap; place-content: stretch space-around;     justify-content: flex-start; align-content: center; flex-direction: row; flex-wrap: wrap;')
     ContentBrowserPanel.Main.class("accordion-content");
-    ContentBrowserPanel.Main.elt.style.maxHeight = windowHeight/4+"px";
+    ContentBrowserPanel.Main.elt.style.maxHeight = "100%";
     ContentBrowserPanel.Main.maxHeight = '';
     /*display: flex;
     align-items: flex-start;
@@ -396,7 +458,8 @@ class Editor {
     justify-content: space-around;
     align-content: stretch;*/
     ContentBrowserPanel.Main.style("position:relative;background-color: rgba(0, 0, 0, 0.25);overflow:auto;");
-    ContentBrowserPanel.Holder.position(0,windowHeight-windowHeight/4);
+    
+    //ContentBrowserPanel.Holder.position(0,windowHeight-windowHeight/4);
     this.uiElement(ContentBrowserPanel.Main);
     actionButtons = createDiv();
     actionButtons.id('actionMenu');
@@ -552,18 +615,21 @@ class Editor {
 var editor = new Editor()
 //Accordion menu, menu edit, script edit, image edit
 //Don't touch could break everything
-function accordionMenu(headerText, inputField, name, Opened) {
+function accordionMenu(headerText, inputField, name, Opened = {value:false}) {
     let isExpanded = Opened.value;
+    let byOpened = Opened.value;
     headerText.style("cursor: pointer");
     let UpdateExpansion = () => {
     if (isExpanded) {
         headerText.html("▼" + name);
         inputField.show();
+        if(!byOpened) {
         inputField.style("max-height", inputField.elt.scrollHeight + "px");
         setTimeout(() => {
             Opened.value = true;
             inputField.style('max-height', 'none');
         }, 400);
+        }
         inputField.style('margin-left', '1em');
     } else {
         headerText.html("►" + name);
@@ -578,6 +644,7 @@ function accordionMenu(headerText, inputField, name, Opened) {
     if(isExpanded){inputField.style('max-height', 'none')}
     else{inputField.hide();}
     UpdateExpansion();
+    byOpened = false;
      headerText.mousePressed(() => {
         isExpanded = !isExpanded;
         UpdateExpansion();

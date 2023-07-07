@@ -85,7 +85,7 @@ class gameScript extends Component {
     updateValues() {
         for (let key in this.ownObject.shown) {
             if (this.vals.editableVals.hasOwnProperty(key)) {
-                console.warn(this.ownObject.shown[key],this.vals.editableVals[key]);
+                //console.warn(this.ownObject.shown[key],this.vals.editableVals[key]);
                 this.ownObject.shown[key] = replaceValues(this.vals.editableVals[key],this.ownObject.shown[key]);
             }
         } 

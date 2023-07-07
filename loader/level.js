@@ -23,6 +23,11 @@ function getCurrentBoxes() {
 }
 function deleteUser(obj) {
     if(!obj) return;
+    for(let listeneres of Engine.removeListeners) {
+        if(typeof listeneres === "function") {
+            listeneres(obj);
+        }
+    }
     if(!obj.components) return;
     let components = obj.components;
     for(let component of components) {
@@ -164,9 +169,7 @@ function JsonMap(file) {
     if(!(engine instanceof Engine)) {
         console.error("engine hasn't been initialized in setup()")
     }
-    let cList = engine.componentList;
     engine = new Engine();
-    engine.componentList = cList;
     if(typeof file.data === "object") {
         ScenesfromObject(file.data);
     }else {

@@ -127,14 +127,14 @@ function showEditMenu() {
 function showBrowserPanel() {
     if(ContentBrowserPanel.HUD.elt.style.display === 'none') {
         ContentBrowserPanel.Holder.elt.style.maxHeight = '';
-        ContentBrowserPanel.Main.elt.style.maxHeight = windowHeight/4+"px";
+        ContentBrowserPanel.Main.elt.style.maxHeight = "calc(100%)";
         ContentBrowserPanel.HUD.elt.style.display = 'flex';
-        ContentBrowserPanel.Holder.position(0,windowHeight-windowHeight/4);
+        //ContentBrowserPanel.Holder.position(0,windowHeight-windowHeight/4);
     }else {
         ContentBrowserPanel.HUD.hide();
-        ContentBrowserPanel.Holder.position(0,windowHeight-ContentBrowserPanel.Main.child()[0].scrollHeight);
-        ContentBrowserPanel.Main.elt.style.maxHeight = ContentBrowserPanel.Main.child()[0].scrollHeight;
-        ContentBrowserPanel.Holder.elt.style.height = ContentBrowserPanel.Main.child()[0].scrollHeight;
+        //ContentBrowserPanel.Holder.position(0,windowHeight-ContentBrowserPanel.Main.child()[0].scrollHeight);
+        //ContentBrowserPanel.Main.elt.style.maxHeight = "calc(100%)";
+        //ContentBrowserPanel.Holder.elt.style.height = ContentBrowserPanel.Main.child()[0].scrollHeight;
     }
 }
 function removeOldContent() {
@@ -143,4 +143,91 @@ function removeOldContent() {
         i.remove();
     }
     ContentBrowserPanel.Divs = [];
+}
+function PanelsInit() {
+    document.body.addEventListener("mouseup",(function() {
+    direction = 'Released';
+}));
+document.body.addEventListener("mousemove",function(e) {
+    changedY(e);
+});
+document.getElementById("divider").addEventListener("mousedown",function(e) {
+    getYDivPosition(e);
+});
+document.getElementById("colDivider").addEventListener("mousedown",function(e) {
+    getXDivPosition(e);
+});
+var container = document.getElementsByClassName("container")[0]
+var
+    topCurrentHeight = 0,
+    bottomCurrentHeight = 0,
+    currentPosition = 0,
+    newPosition = 0,
+    rightWidth = 0,
+    leftWidth = 0,
+    direction = 'Released';
+
+function getYDivPosition(e) {
+    direction = 'PressedY';
+    currentPosition = e.pageY;
+    topTempHeight = document.getElementById("topDiv").clientHeight;
+    topCurrentHeight = parseInt(topTempHeight);
+    bottomTempHeight = document.getElementById("bottomDiv").clientHeight;
+    bottomCurrentHeight = parseInt(bottomTempHeight);
+}
+function getXDivPosition(e) {
+    direction = 'PressedX';
+    currentPosition = e.pageX;
+    rightWidth = document.getElementById("rightHolder").clientWidth;
+    leftWidth =document.getElementById("leftHolder").clientWidth;
+}
+function changedY(e) {
+    if (direction=='PressedY') {
+        newPosition = e.pageY;
+        var movePerPixels = parseInt(newPosition - currentPosition);
+        var topDivNewLocation = parseInt(topCurrentHeight + movePerPixels);
+        if (topDivNewLocation < 10) {
+            document.getElementById("topDiv").style.height =  '10px';
+            document.getElementById("bottomDiv").style.height =  "calc(100vh - 18px)";
+        }else {
+        var bottomDivNewLocation = parseInt(bottomCurrentHeight - movePerPixels);
+        if (bottomDivNewLocation < 10) {
+            document.getElementById("topDiv").style.height =  "calc(100vh - 18px)";
+            document.getElementById("bottomDiv").style.height =  '10px';
+        }
+        else {
+            document.getElementById("topDiv").style.height = "calc("+topDivNewLocation/innerHeight*100 + "% )";;
+            document.getElementById("bottomDiv").style.height =  "calc("+bottomDivNewLocation/innerHeight*100 + "% )";
+        }
+        windowResized()
+    }
+    }else if(direction=="PressedX") {
+        newPosition = e.pageX;
+        var movePerPixels = parseInt(newPosition - currentPosition);
+        var topDivNewLocation = parseInt(rightWidth - movePerPixels);
+        var leftDivNewLocation = parseInt(leftWidth + movePerPixels)
+        var bottomDivNewLocation = parseInt(rightWidth - movePerPixels);
+        
+        document.getElementById("rightHolder").style.width = "calc("+topDivNewLocation/innerWidth*100 + "% )";
+        //document.getElementById("bottomDiv").style.width =  bottomDivNewLocation+'px';
+        if(leftDivNewLocation>innerWidth-20) {
+            document.getElementById("leftHolder").style.width = "calc(100% - 8px)";
+            document.getElementById("rightHolder").style.width = 10 + 'px';
+        }else {
+            if(leftDivNewLocation<20) {
+                //document.getElementById("leftHolder").style.width = "calc(100% - 8px)";
+                document.getElementById("leftHolder").style.width = 10 + 'px';
+                document.getElementById("rightHolder").style.width = "calc(100% - 8px)";
+            }else {
+                let _new = ("calc("+leftDivNewLocation/innerWidth*100 + "%)")
+                //console.log(_new)
+                document.getElementById("leftHolder").style.width = _new;
+            }
+        }
+        windowResized()
+    }
+}
+}
+function RecursiveSceneObj(){
+    //I dont remember
 }

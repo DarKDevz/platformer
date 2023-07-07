@@ -1,5 +1,6 @@
+var topDiv;
 function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+    resizeCanvas(topDiv.clientWidth, topDiv.clientHeight);
     //UI Resize
     editor.onResize();
 }
@@ -11,10 +12,13 @@ function preload() {
 }
 function setup() {
     //Initialize Game things
-    createCanvas(windowWidth, windowHeight);
+    topDiv = document.getElementById("topDiv")
+    let cnv = createCanvas(topDiv.clientWidth, topDiv.clientHeight);
+    cnv.parent(document.getElementById("topDiv"))
     noSmooth();
     //Initialize Editor things
     editor.onSetup();
+    PanelsInit()
 }
 function draw() {
     //engine.load();

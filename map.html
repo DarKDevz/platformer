@@ -2,35 +2,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>platformer Map Editor</title>
-    <style>
-        body {
-            padding: 0;
-            margin: 0;
-        }
-        .file-upload {
-  border: 1px solid black;
-  border-radius: 3px;
-  padding: 3px;
-}
-
-.file-upload input {
-  overflow: hidden;
-  width: 0;
-}
-        .contentBrowser {
-            transition: top 0.2s ease-out 0s;
-        }
-        .accordion-header {
-            cursor: pointer;
-        }
-        
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.2s ease-out;
-            /* Adjust the transition duration and timing function as needed */
-        }
-    </style>
+    <link rel="stylesheet" href="engine/editor/style.css">
     <script src="MapData.txt"></script>
     <script src="p5.min.js"></script>
     <script src="engine/collision/Box2D.js"></script>
@@ -59,6 +31,20 @@
 </head>
 
 <body oncontextmenu="return false;">
+    <div class="container">
+        <div id="leftHolder">
+            <div id="leftDiv">
+            </div>
+            <div id="colDivider"></div>
+        </div>
+        <div id="rightHolder">
+            <div id="topDiv">
+            </div>
+            <div id="divider"></div>
+            <div id="bottomDiv">
+        </div>
+        </div>
+    </div>
     <main>
     </main>
 </body>
