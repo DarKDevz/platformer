@@ -134,7 +134,7 @@ class Editor {
         }
         if(shouldUpdateLevels) {
             shouldUpdateLevels = false;
-            console.log(engine.scene);
+            //console.log(engine.scene);
             let leftDiv = document.getElementById("leftDiv");
             for(let oldScene of sceneHolder) {
                 oldScene.remove()
@@ -149,9 +149,7 @@ class Editor {
                 headerText.parent(sceneBtn)
                 let inputField = createDiv();
                 inputField.parent(sceneBtn)
-                if(!openerState[scene.ind]) {
-                    openerState[scene.ind] = {value: false};
-                }
+                openerState[scene.ind] ??= {value: false};
                 headerText.doubleClicked(()=>{
                     if(engine.activeScene !== scene.ind) {
                         scene.loadLevel();
@@ -176,7 +174,6 @@ class Editor {
                         }
                     })
                     _box.parent(inputField);
-                    console.log(inputField);
                 }
                 sceneBtn.parent(leftDiv);
                 sceneHolder.push(sceneBtn);
@@ -484,7 +481,7 @@ class Editor {
 
     button.mousePressed(() => {
         if(editorWindow && !editorWindow.closed) {
-            console.log(editorWindow);
+            //console.log(editorWindow);
             editorWindow.editorData = MapJson();
             editorWindow.doReload()
         }else {
@@ -528,8 +525,9 @@ class Editor {
             info.push(0);
             }
         }
-        if ((lastInfo.length !== info.length))
-            console.log(lastInfo.length - info.length, lastIndexes.length - infoIndexes.length);
+        if ((lastInfo.length !== info.length)) {
+            //console.log(lastInfo.length - info.length, lastIndexes.length - infoIndexes.length);
+        }
         if (info.equals(lastInfo) && !forceMenuUpdate) {
             return;
         }
@@ -571,7 +569,7 @@ class Editor {
                     ComponentSelect.parent(divHolder);
                     let addButton = createButton("Add");
                     divHolder.elt.ondrop = (event) => {
-                        console.log(event);
+                        //console.log(event);
                         console.warn(event.dataTransfer.getData("UUID"));
                         let uuid = event.dataTransfer.getData("UUID");
                         let file = engine.files[uuid];

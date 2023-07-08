@@ -11,10 +11,7 @@ class Box extends GameObject {
         this.collisionType = 'Rect';
     }
     init() {
-        if(!this)return;
-        if(!this.height)return;
-        if(!this.width)return;
-        if(this.width && this.height) {
+        if(this?.width && this?.height) {
             //Avoid making double physics body if initializing twice
         if(!this.body) {
         let bodyDef = new b2BodyDef;

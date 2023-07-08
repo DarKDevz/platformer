@@ -350,7 +350,7 @@ function MapJson() {
         obj[fileId] =  {data:file.data.replaceAll('"',"'"),type:file.type,references:file.references};
         fileList.push(obj);
     }
-    mapData["version"] = 1.0;
+    mapData["version"] = 1.2;
     mapData["file"] = fileList;
     for (let level of engine.scene) {
         mapData[level.ind] = level.toJSON()

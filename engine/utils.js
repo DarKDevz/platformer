@@ -82,7 +82,7 @@ function DrawPolygon(vertices) {
     for(let vertice of vertices) {
         vertex(vertice.x, vertice.y)
     }
-    endShape()
+    endShape(CLOSE)
 }
 function DrawAll() {
     for (b = engine.world.m_bodyList;

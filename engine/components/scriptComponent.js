@@ -198,7 +198,7 @@ class gameScript extends Component {
         let buttonName = alreadyHasName?alreadyHasName:this.file.UUID
         let inp = createButton(buttonName+this.file.type).parent(parent);
         inp.elt.ondrop = (event) => {
-            console.log(event);
+            //console.log(event);
             console.warn(event.dataTransfer.getData("UUID"));
             let uuid = event.dataTransfer.getData("UUID");
             let file = engine.files[uuid];
@@ -217,13 +217,11 @@ class gameScript extends Component {
     MenuEdit(parent) {
         if (!addEditableScript)
             return;
-        console.log(parent);
+        //console.log(parent);
         let fileHolder = createDiv()
         this.AddFileEdit(fileHolder);
         let id = this.ownObject.components.indexOf(this)
-        if(!savedOpened[this.ownObject.uuid+"Script"+id]){
-            savedOpened[this.ownObject.uuid+"Script"+id] = {value:false}
-        }
+        savedOpened[this.ownObject.uuid+"Script"+id] ??= {value:false}
         let mainDiv = addEditableScript("function", (val)=>{
             let actValue = val;
             //if only one uses it's better to replace the file
@@ -319,9 +317,7 @@ class gameSprite extends Component {
         let FileEdit = this.AddFileEdit();
         FileEdit.parent(divHolder);
         let id = this.ownObject.components.indexOf(this)
-        if(!savedOpened[this.ownObject.uuid+"Sprite"+id]) {
-            savedOpened[this.ownObject.uuid+"Sprite"+id] = {value:false}
-        }
+        savedOpened[this.ownObject.uuid+"Sprite"+id] ??= {value:false}
         let mainDiv = addEditableSprite("Image", (val)=>{
             forceBrowserUpdate = true;
             let actValue = val;

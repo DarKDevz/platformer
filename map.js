@@ -22,7 +22,7 @@ function setup() {
 }
 function draw() {
     //engine.load();
-    if (keyIsDown('Control') && keyIsDown('v')) {
+    if (keyIsDown(17) && keyIsDown(86)) {
         editor.pasteObjects();
     }else {
         pasted = false;

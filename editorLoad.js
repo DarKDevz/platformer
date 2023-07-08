@@ -61,8 +61,8 @@ function getBodyCB(fixture) {
 function draw() {
     //Make Sure it's loaded correctly
     if(!window.loaded) return;
-    if(!player||!engine) return; 
-    if(!player.update||!engine.getActiveScene) return; 
+    if(!window?.player?.update) return; 
+    if(!window?.engine?.getActiveScene) return; 
     clear();
     background(150, 230, 240);
     /*-------------PLAYER AND LEVEL DRAWING-----------------*/
